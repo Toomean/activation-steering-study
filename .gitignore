@@ -223,4 +223,5 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Project-specific rules
+.idea
 .env.*

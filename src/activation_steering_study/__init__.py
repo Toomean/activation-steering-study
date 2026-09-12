@@ -1,1 +1,1 @@
-"""Direct Qwen smoke slice for activation steering study."""
+"""Activation steering study."""
