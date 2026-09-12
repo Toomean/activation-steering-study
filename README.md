@@ -33,5 +33,14 @@ activation for the final prompt token.
 make capture
 ```
 
+### Stage 2: Hook intervention
+
+`tests/test_intervention.py` uses real Qwen to verify that a fixed final-token intervention
+leaves logits unchanged at `alpha=0`, changes them at `alpha=1`, and is removed cleanly.
+
+```sh
+make intervention
+```
+
 See the [Qwen2.5-1.5B-Instruct model card](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)
 for the checkpoint source.
