@@ -42,5 +42,13 @@ leaves logits unchanged at `alpha=0`, changes them at `alpha=1`, and is removed 
 make intervention
 ```
 
+### Stage 3: Cached generation
+
+`tests/test_generation.py` observes one prompt pass and two one-token decode passes with real Qwen.
+
+```sh
+make generation
+```
+
 See the [Qwen2.5-1.5B-Instruct model card](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)
 for the checkpoint source.
