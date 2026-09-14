@@ -50,5 +50,15 @@ make intervention
 make generation
 ```
 
+### Stage 4: Steered generation
+
+`src/activation_steering_study/steering/generation.py` adds a fixed all-ones vector at block 0's
+final position and prints greedy baseline and steered generations.
+
+```sh
+make steer
+make test-steering
+```
+
 See the [Qwen2.5-1.5B-Instruct model card](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)
 for the checkpoint source.

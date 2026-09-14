@@ -1,4 +1,4 @@
-.PHONY: smoke capture intervention generation
+.PHONY: smoke capture intervention generation steer test-steering
 
 smoke:
 	uv run --locked python -m activation_steering_study.smoke
@@ -11,3 +11,9 @@ intervention:
 
 generation:
 	uv run --locked pytest -s tests/test_generation.py
+
+steer:
+	uv run --locked python -m activation_steering_study.steering.generation
+
+test-steering:
+	uv run --locked pytest -s tests/test_steered_generation.py
