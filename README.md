@@ -60,5 +60,14 @@ make steer
 make test-steering
 ```
 
+### Stage 5: A/B prompt scoring
+
+`tests/test_scoring.py` checks full-vocabulary A/B probabilities during a prompt-pass intervention.
+It verifies alpha=0, a nonzero change, and restoration after hook removal for A=Paris and B=London.
+
+```sh
+make scoring
+```
+
 See the [Qwen2.5-1.5B-Instruct model card](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)
 for the checkpoint source.
