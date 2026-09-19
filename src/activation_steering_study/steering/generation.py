@@ -9,9 +9,9 @@ import torch
 from activation_steering_study.utils.qwen import load_qwen
 
 
-def generate_with_intervention(model, inputs, direction, alpha, **generation_kwargs):
-    """Generate after adding a direction at block 0's final token of the first sequence."""
-    block = model.model.layers[0]
+def generate_with_intervention(model, inputs, direction, alpha, layer_index=0, **generation_kwargs):
+    """Generate after adding a direction at one block's final token of the first sequence."""
+    block = model.model.layers[layer_index]
 
     # A forward hook can return a replacement output:
     # https://docs.pytorch.org/docs/2.14/generated/torch.nn.Module.html#torch.nn.Module.register_forward_hook
