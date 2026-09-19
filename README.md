@@ -69,5 +69,26 @@ It verifies alpha=0, a nonzero change, and restoration after hook removal for A=
 make scoring
 ```
 
+### Stage 6: Fixed refusal sample
+
+`data/refusal/prompts.json` contains 96 fixed prompts for the exploratory pilot. The local sampler
+reproduces it from copied inputs; [sample details](data/refusal/README.md) are recorded with
+the data.
+
+From the repository root:
+
+```sh
+make sample-refusal
+```
+
+### Stage 7: Exploratory refusal steering
+
+`steering/refusal.py` computes a raw harmful-minus-harmless direction at block 14 and compares
+greedy baseline and steered output for one harmless development prompt.
+
+```sh
+make refusal
+```
+
 See the [Qwen2.5-1.5B-Instruct model card](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)
 for the checkpoint source.

@@ -1,4 +1,4 @@
-.PHONY: smoke capture intervention generation steer test-steering scoring
+.PHONY: smoke capture intervention generation steer test-steering scoring sample-refusal refusal
 
 smoke:
 	uv run --locked python -m activation_steering_study.smoke
@@ -20,3 +20,9 @@ test-steering:
 
 scoring:
 	uv run --locked pytest -s tests/test_scoring.py
+
+sample-refusal:
+	uv run --locked python -m activation_steering_study.data.refusal
+
+refusal:
+	uv run --locked python -m activation_steering_study.steering.refusal
