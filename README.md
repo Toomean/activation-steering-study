@@ -83,8 +83,12 @@ make sample-refusal
 
 ### Stage 7: Exploratory refusal steering
 
-`steering/refusal.py` computes a raw harmful-minus-harmless direction at block 14 and compares
-greedy baseline and steered output for one harmless development prompt.
+`steering/refusal.py` uses the approved manual-review subset of 28 harmful and 32 harmless
+prompts for a raw harmful-minus-harmless direction at block 14, then writes 16 baseline/steered
+pairs for harmless validation prompts to `artifacts/refusal-pilot.json`. Each record retains its
+source IDs and instruction; metadata records the pinned model/source IDs, shared greedy settings,
+and the 64-new-token response limit. See the [manual review notes](data/review/README.md).
+Rerunning overwrites the output file.
 
 ```sh
 make refusal

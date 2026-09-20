@@ -73,6 +73,30 @@ def sample_refusal(seed: int = 42) -> SampleRefusalResult:
     return result
 
 
+def load_reviewed_refusal() -> SampleRefusalResult:
+    reviewed = json.loads(
+        Path("data/review/prompts_checked.json").read_text(encoding="utf-8")
+    )
+    result: SampleRefusalResult = {
+        "source_revision": reviewed["source_revision"],
+        "seed": reviewed["seed"],
+        "train": {"harmful": [], "harmless": []},
+        "validation": {"harmful": [], "harmless": []},
+    }
+    for split in ("train", "validation"):
+        for sample_type in ("harmful", "harmless"):
+            result[split][sample_type] = [
+                {
+                    "sample_path": record["sample_path"],
+                    "sample_index": record["sample_index"],
+                    "instruction": record["instruction"],
+                }
+                for record in reviewed[split][sample_type]
+                if record["verdict"].startswith("Approved:")
+            ]
+    return result
+
+
 if __name__ == "__main__":
     output = _REFUSAL_DATA_DIR / "prompts.json"
     output.write_text(

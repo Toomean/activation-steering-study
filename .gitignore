@@ -225,3 +225,4 @@ __marimo__/
 # Project-specific rules
 .idea
 .env.*
+/artifacts/

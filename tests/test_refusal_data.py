@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 import unicodedata
 
-from activation_steering_study.data.refusal import sample_refusal
+from activation_steering_study.data.refusal import load_reviewed_refusal, sample_refusal
 
 
 def _read_rows(relative_path):
@@ -39,4 +39,19 @@ def test_selected_sample_is_unique_and_has_no_test_overlap():
     )
     assert set(selected_instructions).isdisjoint(test_instructions), (
         "Selected sample overlaps test prompts"
+    )
+
+
+def test_reviewed_sample_matches_manual_review():
+    expected = json.loads(Path("data/refusal/prompts.json").read_text(encoding="utf-8"))
+    # Harmful training rows excluded during manual label review.
+    excluded_indices = {50, 114, 125, 179}
+    expected["train"]["harmful"] = [
+        record
+        for record in expected["train"]["harmful"]
+        if record["sample_index"] not in excluded_indices
+    ]
+
+    assert load_reviewed_refusal() == expected, (
+        "Reviewed sample must match the original sample after manual exclusions"
     )
