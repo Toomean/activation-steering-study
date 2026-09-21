@@ -94,5 +94,16 @@ Rerunning overwrites the output file.
 make refusal
 ```
 
+### Stage 8: Reviewed refusal summary
+
+`analysis/refusal.py` reads `artifacts/refusal-pilot-review.json` and reports separate `none`,
+`full`, and `mixed` counts, paired baseline-to-steered transitions, and any-refusal rates.
+For rates, `full` and `mixed` count as refusals; `none` counts as zero. This is a descriptive
+summary without quality or significance inference.
+
+```sh
+make analyze-refusal
+```
+
 See the [Qwen2.5-1.5B-Instruct model card](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)
 for the checkpoint source.
