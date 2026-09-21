@@ -32,6 +32,9 @@ def test_summary_counts_labels_and_preserves_pairs() -> None:
         "none->mixed": 1,
         "full->none": 1,
     }, "paired transitions should use the same records"
+    assert summary["paired_changes"] == [0, 1, 1, -1], (
+        "signed changes should preserve each paired record"
+    )
     assert summary["baseline_any_refusal_percent"] == 25.0, (
         "baseline any-refusal rate should count full and mixed"
     )

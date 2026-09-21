@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+from activation_steering_study.analysis.bootstrap import bootstrap_mean_interval
 from activation_steering_study.evaluation.labels import REFUSAL_LABELS
 
 
@@ -15,6 +16,7 @@ def summarize_refusal(results: list[dict]) -> dict:
     baseline_counts = {label: 0 for label in resolved_labels}
     steered_counts = {label: 0 for label in resolved_labels}
     transitions: dict[str, int] = {}
+    paired_changes: list[int] = []
 
     for result in results:
         baseline = result["baseline_review"]["refusal"]
@@ -27,6 +29,12 @@ def summarize_refusal(results: list[dict]) -> dict:
 
         baseline_counts[baseline] += 1
         steered_counts[steered] += 1
+        # Full/mixed map to 1 and none to 0; steered minus baseline is per prompt.
+        # +1 means a refusal appeared, -1 means it disappeared, and 0 means its presence is unchanged.
+        paired_changes.append(
+            int(steered in ("full", "mixed"))
+            - int(baseline in ("full", "mixed"))
+        )
         transition = f"{baseline}->{steered}"
         transitions[transition] = transitions.get(transition, 0) + 1
 
@@ -42,6 +50,7 @@ def summarize_refusal(results: list[dict]) -> dict:
         "baseline_counts": baseline_counts,
         "steered_counts": steered_counts,
         "transitions": transitions,
+        "paired_changes": paired_changes,
         "baseline_any_refusal_percent": baseline_percent,
         "steered_any_refusal_percent": steered_percent,
         "steered_minus_baseline_pp": steered_percent - baseline_percent,
@@ -60,6 +69,14 @@ def main() -> None:
     print("Paired transitions:")
     for transition, count in summary["transitions"].items():
         print(f"  {transition}: {count}")
+    interval = bootstrap_mean_interval(summary["paired_changes"])
+    if interval is None:
+        print("95% BCa interval: unavailable because observed changes are constant")
+    else:
+        print(
+            "95% BCa interval for steered minus baseline: "
+            f"{100 * interval[0]:+.1f} to {100 * interval[1]:+.1f} percentage points"
+        )
     print(
         "Any refusal rate: "
         f"{summary['baseline_any_refusal_percent']:.1f}% -> "
