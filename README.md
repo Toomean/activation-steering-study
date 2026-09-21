@@ -105,5 +105,13 @@ summary without quality or significance inference.
 make analyze-refusal
 ```
 
+### Stage 9: Paired refusal-change bootstrap
+
+The same analysis command also bootstraps the mean of each signed per-prompt change: `-1` for
+lost refusal, `0` for no change, and `+1` for a new refusal. With the fixed direction, layer, and
+alpha settings, it prints an approximate, seeded 95% BCa interval in percentage points for the
+small validation sample. It is exploratory: the calculation reads the saved annotations and
+generations without modifying them; it does not establish superiority or coverage.
+
 See the [Qwen2.5-1.5B-Instruct model card](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)
 for the checkpoint source.
