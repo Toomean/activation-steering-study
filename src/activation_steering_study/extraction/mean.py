@@ -29,5 +29,5 @@ def mean_activation(model, tokenizer, prompts, layer_index):
     finally:
         handle.remove()
 
-    activations = torch.stack(activations)
-    return activations, activations.mean(0)
+    stacked_activations = torch.stack(activations)
+    return stacked_activations, stacked_activations.mean(0)

@@ -24,6 +24,12 @@ make smoke
 The root Makefile includes the module-local smoke target. The model remains in the Hugging Face
 cache outside Git. This command prints an answer and saves no manifest.
 
+Run the routine type check from the repository root:
+
+```sh
+make typecheck
+```
+
 ### Stage 1: Block-output capture
 
 `tests/test_capture.py` uses real Qwen to check one forward-hook call and capture a nonempty
@@ -112,6 +118,19 @@ lost refusal, `0` for no change, and `+1` for a new refusal. With the fixed dire
 alpha settings, it prints an approximate, seeded 95% BCa interval in percentage points for the
 small validation sample. It is exploratory: the calculation reads the saved annotations and
 generations without modifying them; it does not establish superiority or coverage.
+
+### Stage 10: Random-direction control
+
+`steering/random_control.py` reuses the cached 16-prompt pilot reference, its model revision,
+block 14, alpha 1, and greedy 64-token settings. One fixed seed-42 random direction with the
+reference norm is applied to all 16 prompts. Generated answers and provenance metadata are saved
+in `artifacts/refusal-random.json`; the direction tensor is not saved, and rerunning overwrites
+only that file. Review the answers using the existing refusal, quality, and unfinished labels
+before comparison.
+
+```sh
+make refusal-random
+```
 
 See the [Qwen2.5-1.5B-Instruct model card](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)
 for the checkpoint source.
