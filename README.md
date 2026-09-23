@@ -102,10 +102,11 @@ make refusal
 
 ### Stage 8: Reviewed refusal summary
 
-`analysis/refusal.py` reads `artifacts/refusal-pilot-review.json` and reports separate `none`,
-`full`, and `mixed` counts, paired baseline-to-steered transitions, and any-refusal rates.
-For rates, `full` and `mixed` count as refusals; `none` counts as zero. This is a descriptive
-summary without quality or significance inference.
+`analysis/refusal.py` joins reviewed baseline/DiM and random-control responses by source path and
+index. It reports three-condition refusal, quality, and unfinished counts; DiM minus baseline and
+DiM minus random paired refusal changes; and exploratory BCa intervals. `full` and `mixed` count
+as refusals; `none` counts as zero. The random control is descriptive and does not support a
+quality or equivalence conclusion from marginal counts.
 
 ```sh
 make analyze-refusal
@@ -113,11 +114,12 @@ make analyze-refusal
 
 ### Stage 9: Paired refusal-change bootstrap
 
-The same analysis command also bootstraps the mean of each signed per-prompt change: `-1` for
-lost refusal, `0` for no change, and `+1` for a new refusal. With the fixed direction, layer, and
-alpha settings, it prints an approximate, seeded 95% BCa interval in percentage points for the
-small validation sample. It is exploratory: the calculation reads the saved annotations and
-generations without modifying them; it does not establish superiority or coverage.
+The same analysis command bootstraps the mean of each signed per-prompt change: DiM minus
+baseline and DiM minus random. `-1` means a lost refusal, `0` no change, and `+1` a new refusal.
+With the fixed direction, layer, and alpha settings, it prints an approximate, seeded 95% BCa
+interval in percentage points for the small validation sample. It is exploratory: the calculation
+reads the saved annotations and generations without modifying them; it does not establish
+superiority or coverage.
 
 ### Stage 10: Random-direction control
 
