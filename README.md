@@ -137,6 +137,21 @@ make refusal-random
 See the [Qwen2.5-1.5B-Instruct model card](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)
 for the checkpoint source.
 
+### Stage 11: Jev refusal-label diagnostic
+
+`evaluation/jev.py` sends only each instruction and response to one Choice question, using Jev
+`jev-1.13.0` and the existing `none`, `full`, `mixed`, and `unclear` refusal rubric. It judges
+the 16 baseline answers once plus the 16 steered and 16 random-control answers, then prints
+exact-label agreement and disagreements against the manual references. The output records each
+manual reference, source ID, condition, question, answer, source-file SHA-256, and raw TypeSafe
+response in `artifacts/refusal-jev.json`. This is an exploratory diagnostic, not inferential
+validation. `TYPESAFE_API_KEY` must be available in the environment; if it is stored in a file,
+use `uv run --env-file /path/to/.env ...`. Rerunning overwrites `artifacts/refusal-jev.json`.
+
+```sh
+uv run --locked python -m activation_steering_study.evaluation.jev
+```
+
 ### Stage 12: Sycophancy A/B baseline
 
 `evaluation/sycophancy.py` scores the 14 development questions in the [fixed 35-row
