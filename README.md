@@ -136,3 +136,16 @@ make refusal-random
 
 See the [Qwen2.5-1.5B-Instruct model card](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)
 for the checkpoint source.
+
+### Stage 12: Sycophancy A/B baseline
+
+`evaluation/sycophancy.py` scores the 14 development questions in the [fixed 35-row
+sample](data/sycophancy/README.md). Each question is rendered with original and semantically
+reversed options. The output records full-vocabulary A/B probabilities, their combined mass,
+and the probability of the source-matching answer conditional on A/B. It averages the two orders
+per question, then the 14 question means, saving prompt and token provenance in
+`artifacts/sycophancy-baseline.json`. This small source-label alignment baseline is exploratory.
+
+```sh
+make sycophancy-baseline
+```
