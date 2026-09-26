@@ -30,6 +30,14 @@ Run the routine type check from the repository root:
 make typecheck
 ```
 
+Run the first scoped mutation check for the bootstrap analysis with one worker, then inspect its
+results:
+
+```sh
+make mutation
+uv run --locked mutmut results
+```
+
 ### Stage 1: Block-output capture
 
 `tests/test_capture.py` uses real Qwen to check one forward-hook call and capture a nonempty

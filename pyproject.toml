@@ -12,6 +12,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "mutmut>=3.8.0",
     "mypy>=2.3.1",
     "pytest",
     "scipy-stubs>=1.18.1.1",
@@ -32,3 +33,7 @@ build-backend = "uv_build"
 [tool.mypy]
 check_untyped_defs = true
 warn_unused_ignores = true
+
+[tool.mutmut]
+only_mutate = ["src/activation_steering_study/analysis/bootstrap.py"]
+pytest_add_cli_args_test_selection = ["tests/test_bootstrap.py"]

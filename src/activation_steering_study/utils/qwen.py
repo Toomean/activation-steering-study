@@ -14,10 +14,13 @@ MODEL_REVISION = "989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
 
 
 def load_qwen():
+    # PyCharm falsely reports these Hugging Face factories as returning None.
+    # noinspection PyNoneFunctionAssignment
     tokenizer = AutoTokenizer.from_pretrained(
         MODEL_ID,
         revision=MODEL_REVISION,
     )
+    # noinspection PyNoneFunctionAssignment
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_ID,
         revision=MODEL_REVISION,

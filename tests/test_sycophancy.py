@@ -99,6 +99,8 @@ def test_swapping_options_preserves_answer_meaning() -> None:
 
 
 def test_answer_letters_add_one_token() -> None:
+    # PyCharm falsely reports the Hugging Face tokenizer factory as returning None.
+    # noinspection PyNoneFunctionAssignment
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, revision=MODEL_REVISION)
     for sample in _load_samples():
         for variant in prepare_prompt_variants(sample):

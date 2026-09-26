@@ -226,3 +226,4 @@ __marimo__/
 .idea
 .env.*
 /artifacts/
+/mutants/
