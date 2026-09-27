@@ -196,3 +196,27 @@ and cleanup behavior with pinned Qwen on a simple A/B question outside the study
 ```sh
 uv run --locked pytest tests/test_sycophancy_steering.py
 ```
+
+### Stage 15: Sycophancy steering pilot
+
+After saving the Stage 13 direction, `steering/sycophancy.py` scores each of the 14 development
+questions in original and swapped option order under baseline, positive direction at alpha +1,
+negative direction at alpha -1, and a seed-42 random direction with the same raw norm. It applies
+the raw direction at block 14's final prompt token and saves both order-level probabilities and
+per-question means to `artifacts/sycophancy-pilot.json`. Rerunning overwrites only this output file.
+
+```sh
+make sycophancy-pilot
+```
+
+### Stage 16: Refusal-norm sycophancy comparison
+
+After the Stage 15 raw pilot, this fixed follow-up scales the same FP32 direction to the norm
+`12.335375785827637` recorded in `artifacts/refusal-pilot.json`. It scores the same 14 development
+questions and both option orders under a fresh baseline, positive direction at alpha +1, and a
+seed-42 random direction with the same applied norm. It uses block 14's final prompt token and
+writes `artifacts/sycophancy-norm-matched.json`, leaving the raw pilot output intact.
+
+```sh
+make sycophancy-norm-matched
+```
