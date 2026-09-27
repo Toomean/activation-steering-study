@@ -9,13 +9,13 @@ import torch
 from transformers import AutoTokenizer
 
 from activation_steering_study.evaluation.sycophancy import (
-    ANSWER_SUFFIX,
     PROMPTS_PATH,
     SOURCE_PATH,
     SampleSycophancyItem,
     prepare_prompt_variants,
     score_prompt_variant,
 )
+from activation_steering_study.utils.ab_prompt import ANSWER_SUFFIX, prepare_ab_prompt
 from activation_steering_study.utils.qwen import MODEL_ID, MODEL_REVISION, load_qwen
 
 
@@ -104,19 +104,44 @@ def test_answer_letters_add_one_token() -> None:
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, revision=MODEL_REVISION)
     for sample in _load_samples():
         for variant in prepare_prompt_variants(sample):
-            prompt_text = cast(
+            content = variant["question"] + ANSWER_SUFFIX
+            expected_prompt_text = cast(
                 str,
                 tokenizer.apply_chat_template(
-                    [{"role": "user", "content": variant["question"] + ANSWER_SUFFIX}],
+                    [{"role": "user", "content": content}],
                     tokenize=False,
                     add_generation_prompt=True,
                 ),
             )
-            prompt_ids = tokenizer.encode(prompt_text, add_special_tokens=False)
+            expected_prompt_ids = tokenizer.encode(
+                expected_prompt_text, add_special_tokens=False
+            )
+            expected_inputs = tokenizer(
+                expected_prompt_text, add_special_tokens=False, return_tensors="pt"
+            )
+            prepared = prepare_ab_prompt(tokenizer, variant["question"])
+            case = f"Source {sample['source_index']} {variant['order']}"
+            assert prepared["content"] == content, f"{case}: content changed"
+            assert prepared["prompt_text"] == expected_prompt_text, (
+                f"{case}: helper changed independently rendered chat text"
+            )
+            assert prepared["prompt_token_ids"] == expected_prompt_ids, (
+                f"{case}: helper changed independently encoded prompt IDs"
+            )
+            assert torch.equal(prepared["inputs"]["input_ids"], expected_inputs["input_ids"]), (
+                f"{case}: helper changed model input IDs"
+            )
             for label in ("A", "B"):
-                completed_ids = tokenizer.encode(prompt_text + label, add_special_tokens=False)
-                assert completed_ids[:-1] == prompt_ids and len(completed_ids) == len(prompt_ids) + 1, (
-                    f"Source {sample['source_index']} {variant['order']} {label} breaks next-token scoring"
+                completed_ids = tokenizer.encode(
+                    expected_prompt_text + label, add_special_tokens=False
+                )
+                assert prepared["answer_token_ids"][label] == completed_ids[-1], (
+                    f"{case}: helper returned unexpected {label} token ID"
+                )
+                assert completed_ids[:-1] == expected_prompt_ids and len(
+                    completed_ids
+                ) == len(expected_prompt_ids) + 1, (
+                    f"{case} {label}: answer breaks next-token scoring"
                 )
 
 

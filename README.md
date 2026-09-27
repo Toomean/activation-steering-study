@@ -172,3 +172,16 @@ per question, then the 14 question means, saving prompt and token provenance in
 ```sh
 make sycophancy-baseline
 ```
+
+### Stage 13: Sycophancy direction extraction
+
+`extraction/sycophancy.py` captures block 14 outputs for bare A and B appended to each of the
+21 extraction questions in both option orders. For each order it subtracts the opposite answer
+activation from the source-matching answer activation, averages the two orders per question, then
+averages the question differences in float32. It saves the raw direction and per-order/source
+differences in `artifacts/sycophancy-direction.pt`, with source and answer-token provenance in
+`artifacts/sycophancy-direction.json`. Rerunning overwrites both files.
+
+```sh
+make sycophancy-direction
+```
