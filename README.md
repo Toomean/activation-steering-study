@@ -185,3 +185,14 @@ differences in `artifacts/sycophancy-direction.pt`, with source and answer-token
 ```sh
 make sycophancy-direction
 ```
+
+### Stage 14: Sycophancy A/B steering
+
+`evaluation/sycophancy.py` can score an unanswered A/B prompt with a supplied direction applied
+to the selected block's final prompt position. Omitting the direction keeps baseline scoring;
+the hook is removed after each scoring call, including failures. The test checks zero, nonzero,
+and cleanup behavior with pinned Qwen on a simple A/B question outside the study split.
+
+```sh
+uv run --locked pytest tests/test_sycophancy_steering.py
+```

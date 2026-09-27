@@ -6,6 +6,7 @@ https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct
 
 import torch
 
+from activation_steering_study.steering.intervention import register_intervention
 from activation_steering_study.utils.qwen import load_qwen
 
 
@@ -13,20 +14,13 @@ def generate_with_intervention(model, inputs, direction, alpha, layer_index=0, *
     """Generate after adding a direction at one block's final token of the first sequence."""
     block = model.model.layers[layer_index]
 
-    # A forward hook can return a replacement output:
-    # https://docs.pytorch.org/docs/2.14/generated/torch.nn.Module.html#torch.nn.Module.register_forward_hook
-    def add_direction(_module, _inputs, output):
-        modified_output = output.clone()
-        modified_output[0, -1] += alpha * direction
-        return modified_output
-
-    handle = block.register_forward_hook(add_direction)
+    remove_hook = register_intervention(block, direction, alpha)
     try:
         # Preserve the standard generation API for demos and raw-logit tests.
         # https://huggingface.co/docs/transformers/en/main_classes/text_generation#transformers.GenerationMixin.generate
         return model.generate(**inputs, **generation_kwargs)
     finally:
-        handle.remove()
+        remove_hook()
 
 
 def main() -> None:

@@ -6,9 +6,11 @@ import re
 from pathlib import Path
 from typing import TypedDict, cast
 
+import torch
 from transformers import PreTrainedTokenizerBase, Qwen2ForCausalLM
 
 from activation_steering_study.evaluation.scoring import score_answer_tokens
+from activation_steering_study.steering.intervention import register_intervention
 from activation_steering_study.utils.ab_prompt import ANSWER_SUFFIX, prepare_ab_prompt
 from activation_steering_study.utils.qwen import MODEL_ID, MODEL_REVISION, load_qwen
 
@@ -71,6 +73,10 @@ def score_prompt_variant(
     tokenizer: PreTrainedTokenizerBase,
     model: Qwen2ForCausalLM,
     variant: SycophancyPromptVariant,
+    *,
+    direction: torch.Tensor | None = None,
+    alpha: float = 1.0,
+    layer_index: int = 14,
 ) -> ScoredSycophancyVariant:
     """Score one displayed prompt variant using A/B as the next-token choices.
 
@@ -79,15 +85,28 @@ def score_prompt_variant(
     prompt and token metadata. Raise ValueError if either answer letter does not
     append exactly one token while preserving the prompt prefix. The model
     receives the prompt without an answer; completed strings are used only to
-    derive and check answer token IDs.
+    derive and check answer token IDs. An optional direction is added at the
+    selected block's final prompt token, with alpha scaling the addition. The
+    default zero-based block 14 matches the exploratory direction extraction.
     """
     prepared = prepare_ab_prompt(tokenizer, variant["question"])
     answer_token_ids = prepared["answer_token_ids"]
-    probabilities = score_answer_tokens(
-        model,
-        prepared["inputs"],
-        [answer_token_ids["A"], answer_token_ids["B"]],
+    # Extraction captures the appended answer letter; scoring steers the unanswered prompt.
+    # None keeps the existing hook-free baseline scoring path.
+    remove_hook = (
+        register_intervention(model.model.layers[layer_index], direction, alpha)
+        if direction is not None
+        else None
     )
+    try:
+        probabilities = score_answer_tokens(
+            model,
+            prepared["inputs"],
+            [answer_token_ids["A"], answer_token_ids["B"]],
+        )
+    finally:
+        if remove_hook is not None:
+            remove_hook()
     p_a, p_b = (float(probability) for probability in probabilities)
     mass = p_a + p_b
     return {
