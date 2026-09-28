@@ -1,30 +1,66 @@
-"""Capture block outputs at completed A/B answer letters."""
+"""Build source-level A/B answer differences and means."""
+
+from collections.abc import Sequence
 
 import torch
 
+from activation_steering_study.evaluation.choices import ChoicePromptVariant
+from activation_steering_study.extraction.answer_activations import answer_activations_at_layers
+from activation_steering_study.utils.choice_prompt import ANSWER_SUFFIX, prepare_choice_prompt
 
-def answer_activations(model, tokenizer, prompt_text: str, layer_index: int) -> dict[str, torch.Tensor]:
-    """Return float32 block outputs for bare A and B appended to a rendered prompt.
 
-    ``prompt_text`` is an unanswered chat prompt ending at the assistant prefix.
-    Each answer must preserve its tokenized prefix and add one final token.
+def extract_choice_pairs(
+    model, tokenizer, sources: Sequence[tuple[int, list[ChoicePromptVariant]]],
+    layer_indices: Sequence[int],
+) -> tuple[dict[int, dict[str, torch.Tensor]], list[dict[str, object]]]:
+    """Build matching-minus-opposite answer differences for source questions.
+
+    Each source is one original dataset question. For each supplied variant, subtract
+    the opposite-answer activation from the activation for the answer selected by
+    ``matching_label``. Average the two variant differences for each question, then
+    average question means.
+
+    For each requested layer, the returned tensors have these shapes:
+    - ``pair_differences``: [N, 2, H], by question, supplied variant, activation component.
+    - ``source_differences``: [N, H], the two-variant mean for each question.
+    - ``direction``: [H], the mean of ``source_differences`` across questions.
+
+    N is the number of source questions; H is the hidden size. Source and variant
+    input order is preserved. Rows retain source ID, variant order, matching label,
+    answer token IDs, and the zero-based position of the appended answer token.
     """
-    activations: dict[str, torch.Tensor] = {}
-    block = model.model.layers[layer_index]
-
-    # CAA captures a completed answer at -2 under its Llama chat wrapper. Here the
-    # bare answer letter is the final Qwen token, so capture its block output at -1.
-    # https://github.com/nrimsky/CAA/blob/5dabbbd9a0bca5f25e174501e959de378806aa48/generate_vectors.py
-    def capture_output(_module, _inputs, output):
-        activations[label] = output[0, -1].float().clone()
-
-    handle = block.register_forward_hook(capture_output)
-    try:
-        with torch.no_grad():
-            for label in ("A", "B"):
-                inputs = tokenizer(prompt_text + label, add_special_tokens=False, return_tensors="pt")
-                model(**inputs)
-    finally:
-        handle.remove()
-
-    return activations
+    pairs: dict[int, list[torch.Tensor]] = {layer: [] for layer in layer_indices}
+    rows: list[dict[str, object]] = []
+    for source_index, variants in sources:
+        source_pairs: dict[int, list[torch.Tensor]] = {layer: [] for layer in layer_indices}
+        for variant in variants:
+            prepared = prepare_choice_prompt(
+                tokenizer, variant["question"] + ANSWER_SUFFIX, "AB"
+            )
+            captured = answer_activations_at_layers(
+                model, tokenizer, prepared["prompt_text"], layer_indices
+            )
+            matching = variant["matching_label"]
+            opposite = "B" if matching == "A" else "A"
+            for layer in layer_indices:
+                source_pairs[layer].append(captured[layer][matching] - captured[layer][opposite])
+            rows.append({
+                "source_index": source_index, "order": variant["order"],
+                "matching_label": matching,
+                "answer_token_ids": prepared["answer_token_ids"],
+                "answer_position": len(prepared["prompt_token_ids"]),
+            })
+        if len(variants) != 2:
+            raise ValueError(f"Source {source_index} must have exactly two orders")
+        for layer in layer_indices:
+            pairs[layer].append(torch.stack(source_pairs[layer]))
+    tensors = {}
+    for layer in layer_indices:
+        pair_differences = torch.stack(pairs[layer])
+        source_differences = pair_differences.mean(dim=1)
+        tensors[layer] = {
+            "pair_differences": pair_differences,
+            "source_differences": source_differences,
+            "direction": source_differences.mean(dim=0),
+        }
+    return tensors, rows

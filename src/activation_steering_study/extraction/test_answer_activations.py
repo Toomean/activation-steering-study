@@ -3,7 +3,7 @@
 import pytest
 import torch
 
-from activation_steering_study.extraction.paired import answer_activations
+from activation_steering_study.extraction.answer_activations import answer_activations_at_layers
 from activation_steering_study.utils.qwen import load_qwen
 
 
@@ -27,7 +27,9 @@ def test_answer_activations_match_answer_positions(qwen_answer_prompt) -> None:
     tokenizer, model, prompt_text = qwen_answer_prompt
     layer_index = 14
     answer_position = len(tokenizer.encode(prompt_text, add_special_tokens=False))
-    actual = answer_activations(model, tokenizer, prompt_text, layer_index)
+    actual = answer_activations_at_layers(
+        model, tokenizer, prompt_text, [layer_index]
+    )[layer_index]
 
     assert set(actual) == {"A", "B"}, "Capture did not return both answer letters"
     for label in ("A", "B"):
@@ -48,6 +50,6 @@ def test_answer_activations_removes_hook(qwen_answer_prompt) -> None:
     block = model.model.layers[14]
     hook_count = len(block._forward_hooks)
 
-    answer_activations(model, tokenizer, prompt_text, 14)
+    answer_activations_at_layers(model, tokenizer, prompt_text, [14])
 
     assert len(block._forward_hooks) == hook_count, "Answer capture did not remove its hook"
