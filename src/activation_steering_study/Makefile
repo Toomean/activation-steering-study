@@ -16,7 +16,7 @@ steer:
 	uv run --locked python -m activation_steering_study.steering.generation
 
 test-steering:
-	uv run --locked pytest -s tests/test_steered_generation.py
+	uv run --locked pytest -s src/activation_steering_study/steering/test_generation.py
 
 scoring:
 	uv run --locked pytest -s src/activation_steering_study/evaluation/test_scoring.py

@@ -30,6 +30,12 @@ Run the routine type check from the repository root:
 make typecheck
 ```
 
+Run all tests from the repository root:
+
+```sh
+make test
+```
+
 Run the first scoped mutation check for the bootstrap analysis with one worker, then inspect its
 results:
 

@@ -36,4 +36,4 @@ warn_unused_ignores = true
 
 [tool.mutmut]
 only_mutate = ["src/activation_steering_study/analysis/bootstrap.py"]
-pytest_add_cli_args_test_selection = ["tests/test_bootstrap.py"]
+pytest_add_cli_args_test_selection = ["src/activation_steering_study/analysis/test_bootstrap.py"]

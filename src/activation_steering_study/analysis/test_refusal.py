@@ -38,7 +38,7 @@ def _pair(
 
 
 def _copy_review_artifacts(tmp_path: Path) -> tuple[Path, Path]:
-    source_artifacts = Path(__file__).parents[1] / "artifacts"
+    source_artifacts = Path("artifacts")
     artifact_dir = tmp_path / "artifacts"
     artifact_dir.mkdir()
     pilot_path = artifact_dir / "refusal-pilot-review.json"
