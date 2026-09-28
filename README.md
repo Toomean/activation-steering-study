@@ -194,7 +194,7 @@ the hook is removed after each scoring call, including failures. The test checks
 and cleanup behavior with pinned Qwen on a simple A/B question outside the study split.
 
 ```sh
-uv run --locked pytest tests/test_sycophancy_steering.py
+uv run --locked pytest src/activation_steering_study/evaluation/test_choices.py
 ```
 
 ### Stage 15: Sycophancy steering pilot
