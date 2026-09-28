@@ -20,6 +20,60 @@ class GenerationKwargs(TypedDict):
     do_sample: bool
 
 
+class GeneratedCompletion(TypedDict):
+    text: str
+    prompt_token_ids: list[int]
+    generated_token_ids: list[int]
+
+
+def generate_completion(
+    model: Qwen2ForCausalLM,
+    tokenizer: PreTrainedTokenizerBase,
+    prompt: str,
+    direction: torch.Tensor | None,
+    layer_index: int,
+    alpha: float,
+    generation_kwargs: GenerationKwargs,
+) -> GeneratedCompletion:
+    """Render and generate one prompt, retaining the exact token boundary."""
+    inputs = cast(
+        BatchEncoding,
+        tokenizer.apply_chat_template(
+            [{"role": "user", "content": prompt}],
+            add_generation_prompt=True,
+            return_tensors="pt",
+        ),
+    )
+    prompt_length = inputs["input_ids"].shape[-1]
+    with torch.no_grad():
+        if direction is None:
+            # Mypy rejects Qwen's generate() because of a typing mismatch in Transformers 5.17.
+            generated = model.generate(  # type: ignore[misc]
+                **inputs, **generation_kwargs
+            )
+        else:
+            generated = generate_with_intervention(
+                model,
+                inputs,
+                direction,
+                alpha,
+                layer_index=layer_index,
+                **generation_kwargs,
+            )
+
+    return {
+        "text": cast(
+            str,
+            tokenizer.decode(
+                generated[0, prompt_length:], skip_special_tokens=True
+            ),
+        ).strip(),
+        "prompt_token_ids": inputs["input_ids"][0].tolist(),
+        # Keep EOS when generate returned it so response scoring uses model output as-is.
+        "generated_token_ids": generated[0, prompt_length:].tolist(),
+    }
+
+
 def generate_answers(
     model: Qwen2ForCausalLM,
     tokenizer: PreTrainedTokenizerBase,
@@ -37,38 +91,19 @@ def generate_answers(
     ]
     for record in results:
         prompt = cast(str, record["instruction"])
-        inputs = cast(
-            BatchEncoding,
-            tokenizer.apply_chat_template(
-                [{"role": "user", "content": prompt}],
-                add_generation_prompt=True,
-                return_tensors="pt",
-            ),
-        )
-        prompt_length = inputs["input_ids"].shape[-1]
         print(f"sample: {record['sample_path']}:{record['sample_index']}")
         print(f"prompt: {prompt}")
         for name, direction in directions.items():
-            if direction is None:
-                # Mypy rejects Qwen's generate() because of a typing mismatch in Transformers 5.17.
-                generated = model.generate(  # type: ignore[misc]
-                    **inputs, **generation_kwargs
-                )
-            else:
-                generated = generate_with_intervention(
-                    model,
-                    inputs,
-                    direction,
-                    alpha,
-                    layer_index=layer_index,
-                    **generation_kwargs,
-                )
-            text = cast(
-                str,
-                tokenizer.decode(
-                    generated[0, prompt_length:], skip_special_tokens=True
-                ),
-            ).strip()
+            completion = generate_completion(
+                model,
+                tokenizer,
+                prompt,
+                direction,
+                layer_index,
+                alpha,
+                generation_kwargs,
+            )
+            text = completion["text"]
             print(f"{name}: {text}")
             record[name] = text
     return results
