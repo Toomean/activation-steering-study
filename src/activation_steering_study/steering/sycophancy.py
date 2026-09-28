@@ -12,10 +12,9 @@ from activation_steering_study.evaluation.sycophancy import (
     PROMPTS_PATH,
     SOURCE_PATH,
     SampleSycophancyItem,
-    ScoredSycophancyVariant,
     prepare_prompt_variants,
-    score_prompt_variant,
 )
+from activation_steering_study.evaluation.choices import ScoredChoiceVariant, score_choice_variant
 from activation_steering_study.extraction.sycophancy import (
     METADATA_PATH as DIRECTION_METADATA_PATH,
     SOURCE_REVISION,
@@ -23,7 +22,7 @@ from activation_steering_study.extraction.sycophancy import (
 )
 from activation_steering_study.steering.pilot import save_results
 from activation_steering_study.steering.random_control import sample_random_direction
-from activation_steering_study.utils.ab_prompt import ANSWER_SUFFIX
+from activation_steering_study.utils.choice_prompt import ANSWER_SUFFIX
 from activation_steering_study.utils.qwen import MODEL_ID, MODEL_REVISION, load_qwen
 
 
@@ -134,8 +133,8 @@ def main() -> None:
         }
         condition_means = []
         for name, (condition_direction, condition_alpha) in conditions.items():
-            orders: list[ScoredSycophancyVariant] = [
-                score_prompt_variant(
+            orders: list[ScoredChoiceVariant] = [
+                score_choice_variant(
                     tokenizer,
                     model,
                     variant,
