@@ -76,7 +76,7 @@ make test-steering
 
 ### Stage 5: A/B prompt scoring
 
-`tests/test_scoring.py` checks full-vocabulary A/B probabilities during a prompt-pass intervention.
+`src/activation_steering_study/evaluation/test_scoring.py` checks full-vocabulary A/B probabilities during a prompt-pass intervention.
 It verifies alpha=0, a nonzero change, and restoration after hook removal for A=Paris and B=London.
 
 ```sh

@@ -19,7 +19,7 @@ test-steering:
 	uv run --locked pytest -s tests/test_steered_generation.py
 
 scoring:
-	uv run --locked pytest -s tests/test_scoring.py
+	uv run --locked pytest -s src/activation_steering_study/evaluation/test_scoring.py
 
 sample-refusal:
 	uv run --locked python -m activation_steering_study.data.refusal
