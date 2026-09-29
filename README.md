@@ -226,3 +226,16 @@ writes `artifacts/sycophancy-norm-matched.json`, leaving the raw pilot output in
 ```sh
 make sycophancy-norm-matched
 ```
+
+### Stage 17: MMLU refusal direction check
+
+`evaluation/mmlu.py` compares next-token A-D scores for the MMLU validation sample under a fresh
+baseline, the frozen block-14 refusal difference-in-means direction at alpha +1, and one seed-42
+random direction with the same norm. Each prompt preserves the original question and option order;
+scoring uses full-vocabulary probabilities, reports their A-D mass, and predicts the highest-probability
+choice among A-D. The 285-row sample uses the validation split only; source and sampling details are in
+the [MMLU data notes](data/mmlu/README.md). Results overwrite `artifacts/refusal-mmlu.json`.
+
+```sh
+make refusal-mmlu
+```
