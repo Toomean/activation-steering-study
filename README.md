@@ -239,3 +239,24 @@ the [MMLU data notes](data/mmlu/README.md). Results overwrite `artifacts/refusal
 ```sh
 make refusal-mmlu
 ```
+
+### Stage 18: Shared exploratory A/B sweep
+
+`steering/choice_sweep.py` uses the same two-order A/B scorer and completed-answer
+extraction for [sycophancy](data/sycophancy/README.md) and provisional
+[TruthfulQA source-labelled honesty](data/honesty/README.md). It captures blocks
+6, 10, 14, 18, and 21, scales each raw direction to the fixed refusal reference
+norm, and scores each block at alpha 1 against a fresh baseline and seed-42 random
+control. The layer with the largest development change is selected even if every
+change is negative; exact ties favour the lower block. The selected layer then gets
+alpha 0.5, 1, and 2 with matched random controls. Honesty also records a block-14
+negative-direction diagnostic. Outputs are `artifacts/{behaviour}-sweep.json/.pt`,
+with raw pair differences, all per-source scores, settings, and hashes. The +5
+percentage point benchmark is exploratory; random, order, and A/B mass diagnostics
+are not extra passing criteria. Layer selection and evaluation use the same
+small development set, and no final heldout is used.
+
+```sh
+make sycophancy-sweep
+make honesty-sweep
+```
