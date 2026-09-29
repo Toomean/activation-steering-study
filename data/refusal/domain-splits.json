@@ -1,0 +1,212 @@
+{
+  "policy": {
+    "status": "provisional content-only split, frozen before new model outputs; independent semantic review still required",
+    "train_path": "base/data/refusal/upstream/refusal_direction/harmful_train.json",
+    "validation_path": "base/data/refusal/upstream/refusal_direction/harmful_val.json",
+    "test_path": "base/data/refusal/upstream/refusal_direction/harmful_test.json",
+    "seed": 42,
+    "selection": "Initial per-domain selection: ascending eligible source indices after excluding the four old harmful-review exclusions and exact/normalized validation/test overlaps; fresh Random(42) shuffle within each domain, first 24 extraction and remainder reserve. Validation exact-category IDs used the same shuffle pattern, first 6 development. Pre-output independent review then removed disinformation 131/161 from its original frozen extraction queue and appended its first two original reserves, 5/24, without reshuffling; reserve 166 remains. Other domains and all validation IDs are unchanged.",
+    "final_holdout": "All harmful_test rows remain unqueried; exact-category subset is only a future candidate, with deduplication and final freeze required.",
+    "review_limitation": "Manual harmful/harmless review of existing pooled sample does not certify newly selected domain rows. Instructions can be paraphrases despite no exact/normalized overlap.",
+    "pre_output_review_changes": [
+      {
+        "domain": "disinformation",
+        "removed_initial_extraction_indices": [
+          131,
+          161
+        ],
+        "appended_initial_reserve_indices": [
+          5,
+          24
+        ],
+        "reason": "131 and 161 lack an explicit false factual claim under the stated domain policy; replacement completed before model outputs."
+      }
+    ]
+  },
+  "domains": {
+    "cyber_intrusion": {
+      "train_eligible_count_after_exclusions": 38,
+      "train_extraction_indices": [
+        33,
+        188,
+        27,
+        187,
+        193,
+        184,
+        38,
+        11,
+        180,
+        185,
+        182,
+        7,
+        25,
+        95,
+        6,
+        143,
+        97,
+        109,
+        82,
+        253,
+        186,
+        181,
+        0,
+        221
+      ],
+      "train_reserve_indices": [
+        57,
+        87,
+        3,
+        215,
+        183,
+        116,
+        105,
+        12,
+        20,
+        74,
+        79,
+        86,
+        2,
+        19
+      ],
+      "validation_category": "cybercrime_intrusion",
+      "validation_development_indices": [
+        9,
+        17,
+        20,
+        11,
+        23,
+        4
+      ],
+      "validation_reserve_indices": [
+        22
+      ],
+      "final_test_category_count": 33
+    },
+    "dangerous_substances": {
+      "train_eligible_count_after_exclusions": 30,
+      "train_extraction_indices": [
+        203,
+        198,
+        99,
+        247,
+        216,
+        78,
+        72,
+        115,
+        112,
+        199,
+        94,
+        245,
+        256,
+        212,
+        200,
+        248,
+        17,
+        197,
+        202,
+        41,
+        201,
+        255,
+        67,
+        244
+      ],
+      "train_reserve_indices": [
+        89,
+        93,
+        243,
+        14,
+        56,
+        204
+      ],
+      "validation_category": "chemical_biological",
+      "validation_development_indices": [
+        12,
+        35,
+        37,
+        14,
+        38,
+        8
+      ],
+      "validation_reserve_indices": [
+        16,
+        0,
+        2
+      ],
+      "final_test_category_count": 19
+    },
+    "disinformation": {
+      "train_eligible_count_after_exclusions": 25,
+      "train_extraction_indices": [
+        150,
+        110,
+        70,
+        172,
+        43,
+        34,
+        98,
+        149,
+        168,
+        104,
+        155,
+        9,
+        132,
+        170,
+        15,
+        152,
+        171,
+        28,
+        167,
+        53,
+        68,
+        169,
+        5,
+        24
+      ],
+      "train_reserve_indices": [
+        166
+      ],
+      "validation_category": "misinformation_disinformation",
+      "validation_development_indices": [
+        27,
+        15,
+        25,
+        29,
+        1,
+        36
+      ],
+      "validation_reserve_indices": [],
+      "final_test_category_count": 27,
+      "initial_train_extraction_indices": [
+        150,
+        110,
+        70,
+        172,
+        161,
+        43,
+        34,
+        98,
+        149,
+        168,
+        104,
+        155,
+        9,
+        132,
+        170,
+        131,
+        15,
+        152,
+        171,
+        28,
+        167,
+        53,
+        68,
+        169
+      ],
+      "initial_train_reserve_indices": [
+        5,
+        24,
+        166
+      ]
+    }
+  }
+}
