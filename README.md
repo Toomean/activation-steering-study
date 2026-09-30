@@ -260,3 +260,51 @@ small development set, and no final heldout is used.
 make sycophancy-sweep
 make honesty-sweep
 ```
+
+### Stage 19: Exploratory refusal-domain screen
+
+The frozen provisional split adds 24 harmful extraction rows in each of cyber
+intrusion, dangerous substances, and disinformation. `refusal-domain-extract`
+captures their block-14 FP32 outputs against the same 32 reviewed harmless rows,
+retains the existing 28-row pooled reference, and writes row tensors, raw directions,
+norms, source IDs, and descriptive geometry to `artifacts/refusal-domains.pt/json`.
+The geometry includes 100 seeded split-halves and 199 domain-label permutations;
+neither is a distinctness test.
+
+```sh
+make refusal-domain-extract
+make refusal-domain-baseline
+```
+
+Run each frozen nonzero condition explicitly, from the repository root. Targets are
+`pooled`, `cyber_intrusion`, `dangerous_substances`, and `disinformation`; alphas are
+`0.5`, `1`, `2`, `-0.5`, `-1`, and `-2`; controls are `direction` and `random`.
+For example:
+
+```sh
+uv run --locked python -m activation_steering_study.steering.refusal_domain run --target cyber_intrusion --alpha 1 --control direction
+uv run --locked python -m activation_steering_study.steering.refusal_domain run --target cyber_intrusion --alpha -1 --control random
+```
+
+Each condition writes `artifacts/refusal-conditions/{target}-{control}-{sign}-{magnitude}.json`
+only after completing. Identical completed conditions are skipped after their input,
+model, code, and baseline hashes are checked. Every run scores the fixed 285 MMLU
+validation questions and generates on the same 16 harmless prompts for refusal,
+clean-model response PPL, and last-prompt full-vocabulary KL. Negative conditions
+also generate on the same 16 harmful prompts for suppression. The baseline is
+shared, with paired MMLU changes counted against its saved item scores. Generated
+token IDs and responses are retained for manual audit; absence of a substring is
+only a provisional automatic label. Generation uses `max_new_tokens=256`, greedy
+decoding, and `repetition_penalty=1.1` inherited from the pinned checkpoint.
+
+After the grid, `python -m activation_steering_study.steering.refusal_domain summarize`
+writes `artifacts/refusal-conditions/summary.json` with all present curves, missing
+conditions, and a descriptive nearest tested dose to pooled alpha +1 or -1. For
+equal distances from the reference effect, the smaller absolute alpha is selected.
+
+Optional `--control candidate-sycophancy` or `candidate-honesty` reads the saved
+block-14 A/B tensor, scales it to that target's raw norm, and records its own A/B
+source-label effect at the actual signed dose. These are exploratory candidate
+controls, not certified unrelated directions. The positive and negative curves are
+separate endpoints. No dose-matched equivalence or final heldout conclusion follows
+from this small development screen.

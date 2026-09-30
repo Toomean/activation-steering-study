@@ -1,4 +1,4 @@
-.PHONY: smoke capture intervention generation steer test-steering scoring sample-refusal refusal analyze-refusal refusal-random sycophancy-baseline sycophancy-direction sycophancy-pilot sycophancy-norm-matched refusal-mmlu sycophancy-sweep honesty-sweep
+.PHONY: smoke capture intervention generation steer test-steering scoring sample-refusal refusal analyze-refusal refusal-random sycophancy-baseline sycophancy-direction sycophancy-pilot sycophancy-norm-matched refusal-mmlu sycophancy-sweep honesty-sweep refusal-domain-extract refusal-domain-baseline
 
 smoke:
 	uv run --locked python -m activation_steering_study.smoke
@@ -53,3 +53,9 @@ sycophancy-sweep:
 
 honesty-sweep:
 	uv run --locked python -m activation_steering_study.steering.choice_sweep --behaviour honesty
+
+refusal-domain-extract:
+	uv run --locked python -m activation_steering_study.steering.refusal_domain extract
+
+refusal-domain-baseline:
+	uv run --locked python -m activation_steering_study.steering.refusal_domain run --control baseline
