@@ -31,7 +31,7 @@ def main() -> None:
         f"norm={direction.norm().item():.4f}"
     )
 
-    generation_kwargs: GenerationKwargs = {"max_new_tokens": 64, "do_sample": False}
+    generation_kwargs: GenerationKwargs = {"max_new_tokens": 256, "do_sample": False}
     results = generate_answers(
         model,
         tokenizer,
