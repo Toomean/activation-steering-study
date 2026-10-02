@@ -19,6 +19,7 @@ from activation_steering_study.evaluation.sycophancy import (
 from activation_steering_study.extraction.paired import extract_choice_pairs
 from activation_steering_study.steering.random_control import sample_random_direction
 from activation_steering_study.utils.choice_prompt import ANSWER_SUFFIX
+from activation_steering_study.utils.json_io import save_json
 from activation_steering_study.utils.qwen import MODEL_ID, MODEL_REVISION, load_qwen
 
 
@@ -164,7 +165,7 @@ def sweep_code_hashes() -> dict[str, str]:
         "extraction/answer_activations.py", "extraction/paired.py",
         "steering/choice_sweep.py",
         "steering/intervention.py", "steering/random_control.py",
-        "utils/choice_prompt.py", "utils/qwen.py",
+        "utils/choice_prompt.py", "utils/json_io.py", "utils/qwen.py",
     )
     paths = (Path("src/activation_steering_study") / module for module in modules)
     return {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
@@ -322,7 +323,7 @@ def main() -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     torch.save(extracted, tensor_path)
     artifact["tensor_sha256"] = hashlib.sha256(tensor_path.read_bytes()).hexdigest()
-    output.write_text(json.dumps(artifact, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    save_json(output, artifact)
     print(f"selected block {selected}; benchmark met={artifact['selected_screen_meets_benchmark']}")
     print(f"saved {output} and {tensor_path}")
 

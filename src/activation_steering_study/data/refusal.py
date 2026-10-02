@@ -10,6 +10,8 @@ import random
 from pathlib import Path
 from typing import Literal, TypedDict
 
+from activation_steering_study.utils.json_io import save_json
+
 type SampleSplit = Literal["train", "validation"]
 type SampleType = Literal["harmful", "harmless"]
 type SampleGroup = tuple[SampleSplit, SampleType, str, int]
@@ -99,7 +101,5 @@ def load_reviewed_refusal() -> SampleRefusalResult:
 
 if __name__ == "__main__":
     output = _REFUSAL_DATA_DIR / "prompts.json"
-    output.write_text(
-        json.dumps(sample_refusal(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
+    save_json(output, sample_refusal())
     print(f"saved 96 prompts to {output}")

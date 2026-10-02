@@ -7,6 +7,7 @@ from pathlib import Path
 from typesafe_sdk import Choice, TypeSafeClient
 
 from activation_steering_study.evaluation.labels import REFUSAL_LABELS
+from activation_steering_study.utils.json_io import save_json
 
 MODEL_ID = "jev-1.13.0"
 PILOT_PATH = Path("artifacts/refusal-pilot-review.json")
@@ -82,21 +83,19 @@ def main() -> None:
                     f"{case['human_reference']}->{answer.choice}"
                 )
 
-    OUTPUT_PATH.write_text(
-        json.dumps(
-            {
-                "model_id": MODEL_ID,
-                "question": QUESTION,
-                "rubric": {"labels": list(REFUSAL_LABELS), "criteria": CRITERIA},
-                "source_sha256": {
-                    str(PILOT_PATH): hashlib.sha256(pilot_bytes).hexdigest(),
-                    str(RANDOM_PATH): hashlib.sha256(random_bytes).hexdigest(),
-                },
-                "results": judgments,
+    save_json(
+        OUTPUT_PATH,
+        {
+            "model_id": MODEL_ID,
+            "question": QUESTION,
+            "rubric": {"labels": list(REFUSAL_LABELS), "criteria": CRITERIA},
+            "source_sha256": {
+                str(PILOT_PATH): hashlib.sha256(pilot_bytes).hexdigest(),
+                str(RANDOM_PATH): hashlib.sha256(random_bytes).hexdigest(),
             },
-            indent=2,
-        )
-        + "\n"
+            "results": judgments,
+        },
+        ensure_ascii=True,
     )
 
     agreements = len(judgments) - len(disagreements)

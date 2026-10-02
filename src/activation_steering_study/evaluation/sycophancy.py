@@ -8,6 +8,7 @@ from typing import TypedDict, cast
 
 from activation_steering_study.evaluation.choices import ChoicePromptVariant, prepare_variants, score_choice_variant
 from activation_steering_study.utils.choice_prompt import ANSWER_SUFFIX
+from activation_steering_study.utils.json_io import save_json
 from activation_steering_study.utils.qwen import MODEL_ID, MODEL_REVISION, load_qwen
 
 
@@ -86,7 +87,7 @@ def main() -> None:
         "results": results,
     }
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(json.dumps(artifact, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    save_json(OUTPUT_PATH, artifact)
     print(f"development mean ({len(results)} questions, two orders each): {mean:.4f}")
     print(f"saved {OUTPUT_PATH}")
 

@@ -24,6 +24,7 @@ from activation_steering_study.steering.choice_sweep import (
 from activation_steering_study.steering.pilot import GenerationKwargs, generate_completion
 from activation_steering_study.steering.random_control import sample_random_direction
 from activation_steering_study.utils.choice_prompt import ANSWER_SUFFIX
+from activation_steering_study.utils.json_io import save_json
 from activation_steering_study.utils.qwen import MODEL_ID, MODEL_REVISION, load_qwen
 
 
@@ -50,7 +51,7 @@ def code_hashes() -> dict[str, str]:
         "evaluation/sycophancy.py", "extraction/mean.py", "steering/choice_sweep.py",
         "steering/generation.py", "steering/intervention.py", "steering/random_control.py",
         "steering/pilot.py", "steering/refusal_domain.py", "utils/qwen.py",
-        "utils/choice_prompt.py",
+        "utils/choice_prompt.py", "utils/json_io.py",
     )
     paths = [Path("src/activation_steering_study") / module for module in modules]
     return {str(path): sha256(path) for path in paths}
@@ -62,11 +63,6 @@ def direction_from_rows(harmful: torch.Tensor, harmless: torch.Tensor) -> torch.
     if not bool(torch.isfinite(direction).all()) or direction.norm().item() <= 0:
         raise ValueError("Zero or nonfinite refusal direction")
     return direction
-
-
-def _save_json(path: Path, value: dict[str, object]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def extract() -> None:
@@ -95,7 +91,8 @@ def extract() -> None:
     geometry = analyze_geometry({name: rows[name] for name in DOMAINS}, harmless)
     DIRECTION_PATH.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"rows": rows, "means": means, "directions": directions}, DIRECTION_PATH)
-    _save_json(EXTRACTION_PATH, {
+    EXTRACTION_PATH.parent.mkdir(parents=True, exist_ok=True)
+    save_json(EXTRACTION_PATH, {
         "model_id": MODEL_ID, "model_revision": MODEL_REVISION,
         "model_dtype": str(model.dtype), "layer_index": LAYER,
         "capture": "FP32 block output at final rendered prompt token",
@@ -340,7 +337,8 @@ def run(target: str, alpha: float, control: str) -> None:
         effect = None
     own = (_own_behaviour(tokenizer, model, control.removeprefix("candidate-"), direction, alpha)
            if control.startswith("candidate-") and direction is not None else None)
-    _save_json(output, {"metadata": metadata, "benign": benign, "benign_summary": benign_summary,
+    output.parent.mkdir(parents=True, exist_ok=True)
+    save_json(output, {"metadata": metadata, "benign": benign, "benign_summary": benign_summary,
                         "harmful": harmful, "harmful_summary": harmful_summary,
                         "mmlu": mmlu, "mmlu_summary": mmlu_summary,
                         "endpoint": ("baseline on 16 harmless and 16 harmful" if control == "baseline"
@@ -399,7 +397,8 @@ def summarize() -> None:
                     "absolute_refusal_rate_mismatch": mismatch,
                     "status": "descriptive nearest tested dose; not matched-effect equivalence",
                 }
-    _save_json(CONDITIONS_DIR / "summary.json", {
+    CONDITIONS_DIR.mkdir(parents=True, exist_ok=True)
+    save_json(CONDITIONS_DIR / "summary.json", {
         "baseline_path": str(baseline_path), "baseline_sha256": baseline_sha,
         "curves": curves, "missing_frozen_conditions": missing,
         "closest_tested_dose": closest,

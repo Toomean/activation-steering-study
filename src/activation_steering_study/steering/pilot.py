@@ -4,7 +4,6 @@ Chat rendering follows the Qwen2.5-1.5B-Instruct direct-load example:
 https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct
 """
 
-import json
 from pathlib import Path
 from typing import TypedDict, cast
 
@@ -13,6 +12,7 @@ from transformers import BatchEncoding, PreTrainedTokenizerBase, Qwen2ForCausalL
 
 from activation_steering_study.data.refusal import SampleRefusalItem
 from activation_steering_study.steering.generation import generate_with_intervention
+from activation_steering_study.utils.json_io import save_json
 
 
 class GenerationKwargs(TypedDict):
@@ -111,13 +111,5 @@ def generate_answers(
 
 def save_results(output: Path, metadata, results) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(
-        json.dumps(
-            {**metadata, "results": results},
-            ensure_ascii=False,
-            indent=2,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
+    save_json(output, {**metadata, "results": results})
     print(f"saved {output}")

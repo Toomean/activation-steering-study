@@ -15,6 +15,7 @@ from activation_steering_study.evaluation.sycophancy import (
 )
 from activation_steering_study.extraction.paired import extract_choice_pairs
 from activation_steering_study.utils.choice_prompt import ANSWER_SUFFIX
+from activation_steering_study.utils.json_io import save_json
 from activation_steering_study.utils.qwen import MODEL_ID, MODEL_REVISION, load_qwen
 
 
@@ -59,7 +60,7 @@ def main() -> None:
     }
     TENSOR_PATH.parent.mkdir(parents=True, exist_ok=True)
     torch.save(tensors, TENSOR_PATH)
-    METADATA_PATH.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    save_json(METADATA_PATH, metadata, ensure_ascii=True)
     print(f"block {layer_index}: {len(extraction)} sources, direction norm {metadata['direction_norm']:.6f}")
     print(f"saved {METADATA_PATH} and {TENSOR_PATH}")
 
