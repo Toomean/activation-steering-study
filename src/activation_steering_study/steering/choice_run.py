@@ -55,21 +55,22 @@ class Condition(TypedDict):
     results: list[ScoredRow]
 
 
-def _variants(behaviour: str, sample: ChoiceRow) -> list[ChoicePromptVariant]:
+def prompt_variants(behaviour: str, sample: ChoiceRow) -> list[ChoicePromptVariant]:
     if behaviour == "honesty":
         return honesty_variants(cast(SampleHonestyItem, sample))
     return prepare_prompt_variants(cast(SampleSycophancyItem, sample))
 
 
 def score_condition(tokenizer, model, behaviour: str, development: list[ChoiceRow],
-                    direction: torch.Tensor | None, alpha: float) -> Condition:
+                    direction: torch.Tensor | None, alpha: float,
+                    *, layer_index: int = BLOCK) -> Condition:
     """Average orders within a row, rows within a group, and groups equally."""
     results: list[ScoredRow] = []
     by_group: dict[str | int, list[float]] = {}
     for sample in development:
         orders = [score_choice_variant(
-            tokenizer, model, variant, direction=direction, alpha=alpha, layer_index=BLOCK,
-        ) for variant in _variants(behaviour, sample)]
+            tokenizer, model, variant, direction=direction, alpha=alpha, layer_index=layer_index,
+        ) for variant in prompt_variants(behaviour, sample)]
         row_mean = sum(order["conditional_matching_probability"] for order in orders) / len(orders)
         group_id = sample["group_id"]
         by_group.setdefault(group_id, []).append(row_mean)
@@ -124,7 +125,7 @@ def run(behaviour: str, panel_path: Path, output_dir: Path) -> dict[str, object]
     tokenizer, model = load_qwen()
     extracted, extraction_rows = extract_choice_pairs(
         model, tokenizer,
-        [(sample["source_index"], _variants(behaviour, sample)) for sample in extraction],
+        [(sample["source_index"], prompt_variants(behaviour, sample)) for sample in extraction],
         [BLOCK],
     )
     raw_direction = extracted[BLOCK]["direction"]

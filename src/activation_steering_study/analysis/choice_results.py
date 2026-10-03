@@ -48,7 +48,7 @@ def _load_verified_run(run_dir: Path, manifest_path: Path) -> tuple[dict, str, d
     }
 
 
-def _paired_contrast(real: dict, reference: dict, alpha: float) -> dict:
+def paired_contrast(real: dict, reference: dict, alpha: float) -> dict:
     """Pair by group identity in a fixed order before seeded group resampling."""
     if not real or set(real) != set(reference):
         raise ValueError("Contrast needs matching nonempty group sets")
@@ -64,7 +64,7 @@ def _paired_contrast(real: dict, reference: dict, alpha: float) -> dict:
     }
 
 
-def _condition_diagnostics(condition: dict, source_groups: dict,
+def condition_diagnostics(condition: dict, source_groups: dict,
                            baseline_variants: dict | None = None) -> tuple[dict, dict, dict]:
     """Check identities, then aggregate both orders and mass without excluding variants."""
     row_means: dict[str | int, list[float]] = {}
@@ -138,7 +138,7 @@ def analyze(run_dir: Path, manifest_path: Path, output: Path) -> dict:
     baseline_variants = None
     baseline_mean = 0.0
     for name, condition in conditions.items():
-        groups, variants, diagnostics = _condition_diagnostics(condition, source_groups, baseline_variants)
+        groups, variants, diagnostics = condition_diagnostics(condition, source_groups, baseline_variants)
         groups_by_condition[name] = groups
         mean = float(np.mean(list(groups.values())))
         if name == "baseline":
@@ -157,7 +157,7 @@ def analyze(run_dir: Path, manifest_path: Path, output: Path) -> dict:
         secondary = []
         for control in ("baseline", "random42", "random43"):
             reference_name = control if control == "baseline" else f"{control}_alpha_{alpha:+g}"
-            result = _paired_contrast(groups_by_condition[real_name], groups_by_condition[reference_name], alpha)
+            result = paired_contrast(groups_by_condition[real_name], groups_by_condition[reference_name], alpha)
             result.update(real_condition=real_name, reference_condition=reference_name, alpha=alpha,
                           role="primary" if control == "baseline" else "secondary")
             if summary["behaviour"] == "sycophancy" and sign == "positive" and control == "baseline":

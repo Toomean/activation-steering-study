@@ -208,3 +208,25 @@ def test_runner_schedules_19_conditions_and_excludes_final(
         "Final row content must not appear in summary metadata"
     )
     assert settings["baseline"]["direction_norm"] == 0.0, "Baseline must be hook-free"
+
+
+@pytest.mark.parametrize("layer", [None, 14])
+def test_score_condition_forwards_default_or_explicit_layer(
+    monkeypatch: pytest.MonkeyPatch, layer: int | None,
+) -> None:
+    direction = torch.tensor([3.0, 4.0])
+    calls = []
+
+    def score(_tokenizer, _model, variant, *, direction, alpha, layer_index):
+        calls.append((direction, alpha, layer_index))
+        return cast(ScoredChoiceVariant, {**variant, "conditional_matching_probability": 0.5})
+
+    monkeypatch.setattr(choice_run, "score_choice_variant", score)
+    rows = cast(list[choice_run.ChoiceRow], [_honesty(1, "dev", "development", "Which?")])
+    if layer is None:
+        choice_run.score_condition(None, None, "honesty", rows, direction, -0.5)
+    else:
+        choice_run.score_condition(None, None, "honesty", rows, direction, -0.5, layer_index=layer)
+    assert len(calls) == 2, "Both orders must use the caller's layer"
+    assert all(vector is direction and alpha == -0.5 and block == (18 if layer is None else 14)
+               for vector, alpha, block in calls), "Only the explicit layer override changes block 18"

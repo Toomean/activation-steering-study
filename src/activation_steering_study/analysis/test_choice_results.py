@@ -61,8 +61,8 @@ def _bind_manifest(run_dir: Path, manifest: Path, **updates) -> None:
 
 def test_group_pairing_is_invariant_to_list_order(monkeypatch: pytest.MonkeyPatch) -> None:
     left, right = {"c": 0.9, "a": 0.6, "b": 0.7}, {"b": 0.5, "c": 0.6, "a": 0.5}
-    result = choice_results._paired_contrast(left, right, 1.0)
-    reordered = choice_results._paired_contrast(dict(reversed(list(left.items()))), right, 1.0)
+    result = choice_results.paired_contrast(left, right, 1.0)
+    reordered = choice_results.paired_contrast(dict(reversed(list(left.items()))), right, 1.0)
     assert result == reordered, "Canonical group IDs must make seeded intervals independent of JSON ordering"
     assert result["delta_pp"] == pytest.approx(20.0), "Pair changes by identity: [0.1, 0.2, 0.3]"
     assert result["interval_pp"] == pytest.approx([10.0, 30.0]), "Positional pairing can preserve the mean but changes this CI"
@@ -73,7 +73,7 @@ def test_group_pairing_is_invariant_to_list_order(monkeypatch: pytest.MonkeyPatc
         return 0.0, 0.25
 
     monkeypatch.setattr(choice_results, "bootstrap_mean_interval", interval)
-    choice_results._paired_contrast({2: 0.75, 10: 0.375, 3: 0.625}, {3: 0.5, 2: 0.5, 10: 0.5}, 1.0)
+    choice_results.paired_contrast({2: 0.75, 10: 0.375, 3: 0.625}, {3: 0.5, 2: 0.5, 10: 0.5}, 1.0)
     assert inputs == [[-0.125, 0.25, 0.125]], "Integer IDs 10, 2, 3 must reach bootstrap in canonical string order"
 
 
@@ -86,7 +86,7 @@ def test_signed_status_uses_strict_unrounded_bounds(
 ) -> None:
     monkeypatch.setattr(choice_results, "bootstrap_mean_interval", lambda _values: interval)
     real = {"a": 0.51, "b": 0.52} if alpha > 0 else {"a": 0.49, "b": 0.48}
-    result = choice_results._paired_contrast(real, {"a": 0.5, "b": 0.5}, alpha)
+    result = choice_results.paired_contrast(real, {"a": 0.5, "b": 0.5}, alpha)
     assert result["delta_pp"] == pytest.approx(1.5 if alpha > 0 else -1.5), "Retain raw signed paired effects"
     assert result["status"] == status, "A zero endpoint does not exclude zero in either direction"
     assert result["interval_pp"] == [value * 100 for value in interval], "JSON keeps unrounded percentage-point bounds"
@@ -94,14 +94,14 @@ def test_signed_status_uses_strict_unrounded_bounds(
 
 def test_constant_group_changes_remain_inconclusive() -> None:
     with pytest.warns(RuntimeWarning):
-        result = choice_results._paired_contrast({"a": 0.6, "b": 0.6}, {"a": 0.5, "b": 0.5}, 1.0)
+        result = choice_results.paired_contrast({"a": 0.6, "b": 0.6}, {"a": 0.5, "b": 0.5}, 1.0)
     assert result["interval_pp"] is None and result["status"] == "inconclusive", "Do not replace undefined BCa bounds"
     assert result["delta_pp"] == pytest.approx(10.0), "Undefined intervals retain their point estimates"
 
 
 def test_diagnostics_weight_groups_and_align_variant_pairs() -> None:
     source_groups = {1: "a", 2: "a", 3: "b"}
-    _, baseline, baseline_diagnostics = choice_results._condition_diagnostics(_condition(), source_groups)
+    _, baseline, baseline_diagnostics = choice_results.condition_diagnostics(_condition(), source_groups)
     assert baseline[1, "swapped"][2] == 0.80 and baseline_diagnostics["low_mass_count"] == 2, (
         "Mass exactly 0.80 must not join the two variants below the diagnostic threshold"
     )
@@ -112,7 +112,7 @@ def test_diagnostics_weight_groups_and_align_variant_pairs() -> None:
         row["orders"].reverse()
         for variant in row["orders"]:
             variant["ab_mass"] -= 0.15
-    groups, _, result = choice_results._condition_diagnostics(condition, source_groups, baseline)
+    groups, _, result = choice_results.condition_diagnostics(condition, source_groups, baseline)
     assert sum(groups.values()) / 2 == pytest.approx(0.6), "Validated probabilities define equally weighted group means"
     assert result["order_means"] == {"original": pytest.approx(0.5), "swapped": pytest.approx(0.7)}, (
         "Per-order means must weight the two groups equally"
@@ -128,7 +128,7 @@ def test_diagnostics_weight_groups_and_align_variant_pairs() -> None:
     asymmetric = _condition()
     asymmetric["results"][0]["orders"][0]["ab_mass"] -= 0.3
     asymmetric["results"].reverse()
-    _, _, drop = choice_results._condition_diagnostics(asymmetric, source_groups, baseline)
+    _, _, drop = choice_results.condition_diagnostics(asymmetric, source_groups, baseline)
     assert drop["mass_drop_mean"] == pytest.approx(0.3 / 4 / 2), (
         "One group-a variant drops 0.3 across four variants; equal weighting then averages two groups"
     )
@@ -152,7 +152,7 @@ def test_identity_errors_are_explicit(changed: str, prefix: str) -> None:
     else:
         condition["results"][0]["orders"].pop()
     with pytest.raises(ValueError, match=f"^{prefix}"):
-        choice_results._condition_diagnostics(condition, {1: "a", 2: "a", 3: "b"})
+        choice_results.condition_diagnostics(condition, {1: "a", 2: "a", 3: "b"})
 
 
 @pytest.mark.parametrize("split,behaviour,positive_support", [
