@@ -99,6 +99,27 @@ def test_constant_group_changes_remain_inconclusive() -> None:
     assert result["delta_pp"] == pytest.approx(10.0), "Undefined intervals retain their point estimates"
 
 
+def test_unequal_group_sizes_preserve_equal_weight_in_paired_effect() -> None:
+    source_groups = {1: "a", 2: "a", 3: "b"}
+    baseline, after = _condition(), _condition()
+    for condition, probabilities in ((baseline, [0.0, 1.0, 0.0]), (after, [1.0, 1.0, 0.0])):
+        for row, probability in zip(condition["results"], probabilities, strict=True):
+            for variant in row["orders"]:
+                variant["conditional_matching_probability"] = probability
+    baseline_groups, baseline_variants, _ = choice_results.condition_diagnostics(baseline, source_groups)
+    after_groups, _, diagnostics = choice_results.condition_diagnostics(after, source_groups, baseline_variants)
+    assert baseline_groups == {"a": 0.5, "b": 0.0}, "Average the two group-a rows before weighting groups equally"
+    assert after_groups == {"a": 1.0, "b": 0.0}, "The singleton group-b row must retain its own group mean"
+    assert diagnostics["order_delta_vs_baseline_pp"] == {"original": 25.0, "swapped": 25.0}, (
+        "Each order must average group changes [0.5, 0.0], giving 25pp rather than the row-weighted 100/3pp"
+    )
+    contrast = choice_results.paired_contrast(after_groups, baseline_groups, 1.0)
+    assert contrast["group_count"] == 2, "The paired contrast must count groups rather than the three source rows"
+    assert contrast["delta_pp"] == pytest.approx(25.0), (
+        "Equal group weighting must give a probability change of 0.25 from group changes [0.5, 0.0]"
+    )
+
+
 def test_diagnostics_weight_groups_and_align_variant_pairs() -> None:
     source_groups = {1: "a", 2: "a", 3: "b"}
     _, baseline, baseline_diagnostics = choice_results.condition_diagnostics(_condition(), source_groups)
