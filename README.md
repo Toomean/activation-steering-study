@@ -308,3 +308,21 @@ source-label effect at the actual signed dose. These are exploratory candidate
 controls, not certified unrelated directions. The positive and negative curves are
 separate endpoints. No dose-matched equivalence or final heldout conclusion follows
 from this small development screen.
+
+### Stage 20: Harmless and MMLU computation infrastructure
+
+The [frozen harmless metadata panel](data/harmless/README.md) supplies separate
+development and final loaders. `steering/harmless_run.py` evaluates one baseline
+or positive induction condition with an already loaded model and direction,
+reusing generation, MMLU scoring and quality diagnostics. `analysis/harmless_results.py`
+validates paired IDs and membership, weights harmless groups and MMLU subjects
+equally, and returns paired point changes with nominal BCa intervals or an explicit
+inconclusive result. This stage supplies computation and analysis kernels; a
+frozen selection and provenance/persistence boundary is required before a final launcher.
+
+The focused checks load frozen rows and verify manifest, source and text hashes
+without model calls, and use invented fixtures for computation and analysis:
+
+```sh
+uv run --locked pytest src/activation_steering_study/data/test_harmless.py src/activation_steering_study/steering/test_harmless_run.py src/activation_steering_study/analysis/test_harmless_results.py
+```
