@@ -4,7 +4,7 @@ import math
 import warnings
 from collections import defaultdict
 from statistics import mean
-from typing import NamedTuple, TypedDict
+from typing import Literal, NamedTuple, TypedDict
 
 import numpy as np
 from scipy.stats import DegenerateDataWarning, bootstrap
@@ -12,6 +12,20 @@ from scipy.stats import DegenerateDataWarning, bootstrap
 from activation_steering_study.analysis.bootstrap import bootstrap_mean_interval
 from activation_steering_study.data.harmless import HarmlessRow
 from activation_steering_study.steering.harmless_run import ConditionResult, HarmlessResult, MmluResult
+
+
+HarmlessDirection = Literal["increase", "decrease"]
+
+
+class HarmlessSupport(TypedDict):
+    expected_direction: HarmlessDirection
+    group_count: int
+    nonzero_group_count: int
+    supported: bool
+    method: Literal["nominal_bca", "full_panel_endpoint"] | None
+    reason: str
+    one_sided_probability_upper_bound: float | None
+    two_sided_probability_upper_bound: float | None
 
 
 class GroupMean(TypedDict):
@@ -61,6 +75,7 @@ class HarmlessChange(PairedChange):
     positive_group_count: int
     negative_group_count: int
     unchanged_group_count: int
+    support: HarmlessSupport
 
 
 class MmluChange(PairedChange):
@@ -72,6 +87,12 @@ class MmluChange(PairedChange):
 class ConditionComparison(TypedDict):
     harmless: HarmlessChange
     mmlu: MmluChange
+
+
+class RandomControlComparison(TypedDict):
+    expected_direction: HarmlessDirection
+    supported: bool
+    contrasts: dict[str, ConditionComparison]
 
 
 class _IntervalResult(NamedTuple):
@@ -210,8 +231,45 @@ def _mmlu_interval(subject_differences: dict[str, list[float]]) -> _IntervalResu
     return _IntervalResult(bounds, None)
 
 
+def _harmless_support(
+    differences: list[float], interval: _IntervalResult, expected_direction: HarmlessDirection,
+) -> HarmlessSupport:
+    n = len(differences)
+    k = sum(value != 0 for value in differences)
+    support: HarmlessSupport = {
+        "expected_direction": expected_direction, "group_count": n, "nonzero_group_count": k,
+        "supported": False, "method": None, "reason": "sparse_evidence",
+        "one_sided_probability_upper_bound": None, "two_sided_probability_upper_bound": None,
+    }
+    # Twenty is the accepted convention, not a calibrated 5% boundary.
+    if k < 20:
+        return support
+    if interval.bounds is not None:
+        low, high = interval.bounds
+        qualifies = low > 0 if expected_direction == "increase" else high < 0
+        support["supported"] = qualifies
+        support["method"] = "nominal_bca" if qualifies else None
+        support["reason"] = "strict_nominal_bca" if qualifies else "interval_not_strict_in_expected_direction"
+        return support
+    expected_change = 1 if expected_direction == "increase" else -1
+    if (interval.reason == "constant_nonzero_change" and n == k
+            and all(value == expected_change for value in differences)):
+        # With independent groups, these bound the endpoint event under a directional
+        # one-sided mean null or a mean-zero two-sided null, not exact sign-test
+        # p-values or successful BCa intervals.
+        support["supported"] = True
+        support["method"] = "full_panel_endpoint"
+        support["reason"] = "full_panel_saturation"
+        support["one_sided_probability_upper_bound"] = math.ldexp(1.0, -n)
+        support["two_sided_probability_upper_bound"] = math.ldexp(1.0, 1 - n)
+    else:
+        support["reason"] = "unavailable_interval"
+    return support
+
+
 def compare_conditions(
     manifest: list[HarmlessRow], baseline: ConditionResult, condition: ConditionResult,
+    *, expected_direction: HarmlessDirection,
 ) -> ConditionComparison:
     """Return paired changes and nominal BCa intervals, with unavailability reasons.
 
@@ -222,8 +280,13 @@ def compare_conditions(
     No observed change means unchanged harmless group means (row flips may cancel)
     or unchanged MMLU correctness; predictions and other diagnostics may still differ.
     Intervals containing zero, unavailable intervals and no observed change do not
-    establish equivalence or absence of an effect.
+    establish equivalence or absence of an effect. Harmless support follows the
+    accepted sparse/strict-BCa/full-panel-endpoint rule; MMLU is estimation-only.
+    The caller binds the frozen panel, direction and dose before observing outcomes.
+    Group identities do not prove independence, which the endpoint bounds assume.
     """
+    if expected_direction not in ("increase", "decrease"):
+        raise ValueError("Expected direction must be increase or decrease")
     if (baseline["role"], baseline["layer_index"], baseline["max_new_tokens"], baseline["schema_version"]) != (
         condition["role"], condition["layer_index"], condition["max_new_tokens"], condition["schema_version"]
     ):
@@ -264,7 +327,8 @@ def compare_conditions(
                      "interval_reason": interval.reason,
                      "positive_group_count": sum(value > 0 for value in differences),
                      "negative_group_count": sum(value < 0 for value in differences),
-                     "unchanged_group_count": sum(value == 0 for value in differences)},
+                     "unchanged_group_count": sum(value == 0 for value in differences),
+                     "support": _harmless_support(differences, interval, expected_direction)},
         "mmlu": {"before": before_accuracy, "after": after_accuracy,
                  "delta": mean(mean(values) for values in subject_differences.values()) if subject_differences else None,
                  "nominal_interval": mmlu_interval.bounds,
@@ -273,3 +337,23 @@ def compare_conditions(
                  "gains": gains, "losses": losses,
                  "option_mass_delta": after_mass - before_mass if before_mass is not None and after_mass is not None else None},
     }
+
+
+def compare_random_controls(
+    manifest: list[HarmlessRow], real: ConditionResult,
+    random42: ConditionResult, random43: ConditionResult,
+    *, expected_direction: HarmlessDirection,
+) -> RandomControlComparison:
+    """Require support in both actual real-minus-random contrasts.
+
+    The caller binds controls to the correct seed/vector provenance and the frozen
+    panel/direction/dose. ConditionResult cannot verify those bindings, pre-registration
+    or group independence. This conjunction covers these two controls only.
+    """
+    contrasts = {
+        "random42": compare_conditions(manifest, random42, real, expected_direction=expected_direction),
+        "random43": compare_conditions(manifest, random43, real, expected_direction=expected_direction),
+    }
+    return {"expected_direction": expected_direction,
+            "supported": all(contrast["harmless"]["support"]["supported"] for contrast in contrasts.values()),
+            "contrasts": contrasts}
