@@ -4,7 +4,7 @@ import math
 import warnings
 from collections import defaultdict
 from statistics import mean
-from typing import TypedDict
+from typing import NamedTuple, TypedDict
 
 import numpy as np
 from scipy.stats import DegenerateDataWarning, bootstrap
@@ -54,6 +54,13 @@ class PairedChange(TypedDict):
     delta: float | None
     nominal_interval: tuple[float, float] | None
     interval_status: str
+    interval_reason: str | None
+
+
+class HarmlessChange(PairedChange):
+    positive_group_count: int
+    negative_group_count: int
+    unchanged_group_count: int
 
 
 class MmluChange(PairedChange):
@@ -63,8 +70,13 @@ class MmluChange(PairedChange):
 
 
 class ConditionComparison(TypedDict):
-    harmless: PairedChange
+    harmless: HarmlessChange
     mmlu: MmluChange
+
+
+class _IntervalResult(NamedTuple):
+    bounds: tuple[float, float] | None
+    reason: str | None
 
 
 def _ordered_rows(manifest: list[HarmlessRow], result: ConditionResult) -> list[HarmlessResult]:
@@ -154,26 +166,36 @@ def summarize_condition(manifest: list[HarmlessRow], result: ConditionResult) ->
     }
 
 
-def _group_interval(differences: list[float]) -> tuple[float, float] | None:
-    if len(differences) < 2 or len(set(differences)) < 2:
-        return None
+def _group_interval(differences: list[float]) -> _IntervalResult:
+    if len(differences) < 2:
+        return _IntervalResult(None, "insufficient_units")
+    if all(value == 0 for value in differences):
+        return _IntervalResult(None, "no_observed_change")
+    if len(set(differences)) < 2:
+        return _IntervalResult(None, "constant_nonzero_change")
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DegenerateDataWarning)
         warnings.simplefilter("ignore", RuntimeWarning)
         interval = bootstrap_mean_interval(differences)
-    return interval if interval is not None and all(math.isfinite(value) for value in interval) else None
+    if interval is None or not all(math.isfinite(value) for value in interval):
+        return _IntervalResult(None, "nonfinite_bootstrap")
+    return _IntervalResult(interval, None)
 
 
 def _equal_subject_mean(*samples: np.ndarray) -> float:
     return float(np.mean([np.mean(sample) for sample in samples]))
 
 
-def _mmlu_interval(subject_differences: dict[str, list[float]]) -> tuple[float, float] | None:
+def _mmlu_interval(subject_differences: dict[str, list[float]]) -> _IntervalResult:
     samples = [np.asarray(subject_differences[subject]) for subject in sorted(subject_differences)]
-    if not samples or any(len(sample) < 2 for sample in samples) or all(
-        bool(np.all(sample == sample[0])) for sample in samples
-    ):
-        return None
+    if not samples:
+        return _IntervalResult(None, "missing_endpoint")
+    if any(len(sample) < 2 for sample in samples):
+        return _IntervalResult(None, "insufficient_within_subject_observations")
+    if all(bool(np.all(sample == 0)) for sample in samples):
+        return _IntervalResult(None, "no_observed_change")
+    if all(bool(np.all(sample == sample[0])) for sample in samples):
+        return _IntervalResult(None, "constant_within_subjects")
     # Each subject is an independent resampling stratum. Item pairing is already
     # encoded in its deltas; the statistic retains equal subject weights on jackknife deletes.
     with warnings.catch_warnings():
@@ -183,16 +205,24 @@ def _mmlu_interval(subject_differences: dict[str, list[float]]) -> tuple[float, 
                              paired=False, n_resamples=9999, rng=42,
                              confidence_level=0.95, method="BCa").confidence_interval
     bounds = (float(interval.low), float(interval.high))
-    return bounds if all(math.isfinite(value) for value in bounds) else None
+    if not all(math.isfinite(value) for value in bounds):
+        return _IntervalResult(None, "nonfinite_bootstrap")
+    return _IntervalResult(bounds, None)
 
 
 def compare_conditions(
     manifest: list[HarmlessRow], baseline: ConditionResult, condition: ConditionResult,
 ) -> ConditionComparison:
-    """Return paired point changes and nominal BCa intervals; None means inconclusive.
+    """Return paired changes and nominal BCa intervals, with unavailability reasons.
 
+    Changes are condition minus baseline: the second condition minus the first.
     Harmless resampling units are fixed groups; MMLU resamples paired differences
-    within fixed subjects and averages subject means equally. No equivalence claim follows.
+    within fixed subjects and averages subject means equally. An inconclusive interval
+    status describes availability; observed changes and counts remain descriptive.
+    No observed change means unchanged harmless group means (row flips may cancel)
+    or unchanged MMLU correctness; predictions and other diagnostics may still differ.
+    Intervals containing zero, unavailable intervals and no observed change do not
+    establish equivalence or absence of an effect.
     """
     if (baseline["role"], baseline["layer_index"], baseline["max_new_tokens"], baseline["schema_version"]) != (
         condition["role"], condition["layer_index"], condition["max_new_tokens"], condition["schema_version"]
@@ -229,12 +259,17 @@ def compare_conditions(
     return {
         "harmless": {"before": before["harmless"]["refusal_rate"],
                      "after": after["harmless"]["refusal_rate"], "delta": mean(differences),
-                     "nominal_interval": interval,
-                     "interval_status": "nominal" if interval is not None else "inconclusive"},
+                     "nominal_interval": interval.bounds,
+                     "interval_status": "nominal" if interval.bounds is not None else "inconclusive",
+                     "interval_reason": interval.reason,
+                     "positive_group_count": sum(value > 0 for value in differences),
+                     "negative_group_count": sum(value < 0 for value in differences),
+                     "unchanged_group_count": sum(value == 0 for value in differences)},
         "mmlu": {"before": before_accuracy, "after": after_accuracy,
                  "delta": mean(mean(values) for values in subject_differences.values()) if subject_differences else None,
-                 "nominal_interval": mmlu_interval,
-                 "interval_status": "nominal" if mmlu_interval is not None else "inconclusive",
+                 "nominal_interval": mmlu_interval.bounds,
+                 "interval_status": "nominal" if mmlu_interval.bounds is not None else "inconclusive",
+                 "interval_reason": mmlu_interval.reason,
                  "gains": gains, "losses": losses,
                  "option_mass_delta": after_mass - before_mass if before_mass is not None and after_mass is not None else None},
     }

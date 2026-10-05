@@ -20,6 +20,17 @@ Refusal analysis averages binary rows within groups, then weights groups equally
 in first-appearance manifest order. Quality NLL/KL summaries average available
 quality-row diagnostics and report missing counts.
 
+Changes are the second condition minus the first (`condition` minus `baseline`).
+Paired contrasts report positive, negative and unchanged group counts from the
+signs of group-mean changes; a fractional change counts once. `no_observed_change`
+means unchanged harmless group means, where opposing row flips may cancel, or
+unchanged MMLU correctness. Predictions, option mass and quality diagnostics
+may still differ. `interval_reason` explains an unavailable nominal BCa interval,
+while `interval_status: inconclusive` describes interval availability. The
+observed delta and counts are retained, including constant nonzero changes.
+Intervals containing zero, unavailable intervals and `no_observed_change` do not
+establish equivalence or absence of an effect.
+
 The source files remain unchanged in `../refusal/upstream/refusal_direction/`.
 They were copied from `andyrdt/refusal_direction`, revision
 `9d852fae1a9121c78b29142de733cb1340770cc3`; see the adjacent

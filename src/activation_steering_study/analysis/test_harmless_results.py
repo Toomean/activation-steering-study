@@ -52,6 +52,10 @@ def test_wifi_pair_equal_group_weight_and_permuted_alignment() -> None:
     assert comparison["harmless"]["before"] == 0.25
     assert comparison["harmless"]["after"] == 0.5
     assert comparison["harmless"]["delta"] == 0.25, "Paired Wi-Fi rows count as one group, so delta is .25, not 1/3"
+    # Resampling the two group deltas (.5, 0) gives means 0, .25, .5.
+    assert comparison["harmless"]["nominal_interval"] == pytest.approx((0.0, 0.5)), (
+        "The Wi-Fi interval must resample group deltas; row resampling has upper bound 1"
+    )
 
 
 @pytest.mark.parametrize("mutation", ["duplicate", "missing", "group", "quality"])
@@ -76,10 +80,13 @@ def test_constant_changes_and_missing_quality_are_inconclusive() -> None:
     assert comparison["harmless"]["delta"] == 1.0
     assert comparison["harmless"]["nominal_interval"] is None
     assert comparison["harmless"]["interval_status"] == "inconclusive"
+    assert comparison["harmless"]["interval_reason"] == "constant_nonzero_change"
     singleton_before, singleton_after = _result([0, 0, 0]), _result([1, 1, 1])
     singleton_before["harmless"] = singleton_before["harmless"][:1]
     singleton_after["harmless"] = singleton_after["harmless"][:1]
-    assert harmless_results.compare_conditions(_manifest()[:1], singleton_before, singleton_after)["harmless"]["nominal_interval"] is None
+    singleton = harmless_results.compare_conditions(_manifest()[:1], singleton_before, singleton_after)["harmless"]
+    assert singleton["nominal_interval"] is None and singleton["interval_reason"] == "insufficient_units"
+    assert singleton["delta"] == 1.0 and singleton["positive_group_count"] == 1
     condition["harmless"][1]["response_likelihood"] = {"token_count": 1, "mean_nll": 2.0, "perplexity": 7.389}
     condition["harmless"][1]["prompt_kl"] = 0.4
     quality = harmless_results.summarize_condition(_manifest(), condition)["harmless"]["quality"]
@@ -115,7 +122,7 @@ def test_unequal_mmlu_subjects_keep_equal_weights_and_id_pairing() -> None:
     assert comparison["nominal_interval"] == pytest.approx((-1 / 16, 7 / 12)), (
         "The fixed unequal-subject interval must distinguish within-subject resampling from pooled rows"
     )
-    assert comparison["interval_status"] == "nominal"
+    assert comparison["interval_status"] == "nominal" and comparison["interval_reason"] is None
     baseline["mmlu"].reverse()
     condition["mmlu"].reverse()
     assert harmless_results.compare_conditions(_manifest(), baseline, condition)["mmlu"] == comparison
@@ -132,6 +139,49 @@ def test_mmlu_singleton_subject_and_constant_strata_have_no_interval() -> None:
     condition["mmlu"] = [_mmlu("small", 0, True)]
     comparison = harmless_results.compare_conditions(_manifest(), baseline, condition)["mmlu"]
     assert comparison["delta"] == 1.0 and comparison["nominal_interval"] is None
+    assert comparison["interval_reason"] == "insufficient_within_subject_observations"
+    assert comparison["gains"] == 1 and comparison["losses"] == 0
     baseline["mmlu"].append(_mmlu("small", 1, False))
     condition["mmlu"].append(_mmlu("small", 1, True))
-    assert harmless_results.compare_conditions(_manifest(), baseline, condition)["mmlu"]["nominal_interval"] is None
+    constant = harmless_results.compare_conditions(_manifest(), baseline, condition)["mmlu"]
+    assert constant["nominal_interval"] is None and constant["interval_reason"] == "constant_within_subjects"
+    assert constant["delta"] == 1.0 and constant["gains"] == 2
+    negative = harmless_results.compare_conditions(_manifest(), condition, baseline)["mmlu"]
+    assert negative["interval_reason"] == "constant_within_subjects" and negative["delta"] == -1.0
+    assert negative["gains"] == 0 and negative["losses"] == 2
+    unchanged = harmless_results.compare_conditions(_manifest(), baseline, baseline)["mmlu"]
+    assert unchanged["interval_reason"] == "no_observed_change" and unchanged["delta"] == 0.0
+
+
+@pytest.mark.parametrize("before,after,delta,reason,counts", [
+    ([0, 0, 0], [0, 0, 0], 0.0, "no_observed_change", (0, 0, 2)),
+    ([0, 0, 0], [1, 1, 1], 1.0, "constant_nonzero_change", (2, 0, 0)),
+    ([1, 1, 1], [0, 0, 0], -1.0, "constant_nonzero_change", (0, 2, 0)),
+    ([0, 1, 0], [1, 1, 0], 0.25, None, (1, 0, 1)),
+    ([1, 1, 0], [0, 1, 0], -0.25, None, (0, 1, 1)),
+    ([0, 1, 1], [1, 1, 0], -0.25, None, (1, 1, 0)),
+    ([0, 1, 0], [1, 0, 0], 0.0, "no_observed_change", (0, 0, 2)),
+])
+def test_group_change_diagnostics_preserve_observed_effects(before, after, delta, reason, counts) -> None:
+    comparison = harmless_results.compare_conditions(_manifest(), _result(before), _result(after))
+    change = comparison["harmless"]
+    assert change["delta"] == delta and change["interval_reason"] == reason
+    assert (change["positive_group_count"], change["negative_group_count"], change["unchanged_group_count"]) == counts
+    assert change["interval_status"] == ("nominal" if reason is None else "inconclusive")
+    assert comparison["mmlu"]["delta"] is None and comparison["mmlu"]["interval_reason"] == "missing_endpoint"
+
+
+def test_nonfinite_bootstrap_reasons(monkeypatch: pytest.MonkeyPatch) -> None:
+    from types import SimpleNamespace
+
+    baseline, condition = _result([0, 1, 0]), _result([1, 1, 0])
+    baseline["mmlu"] = [_mmlu("small", index, False) for index in range(2)]
+    condition["mmlu"] = [_mmlu("small", index, index == 0) for index in range(2)]
+    monkeypatch.setattr(harmless_results, "bootstrap_mean_interval", lambda _: None)
+    monkeypatch.setattr(harmless_results, "bootstrap", lambda *_args, **_kwargs: SimpleNamespace(
+        confidence_interval=SimpleNamespace(low=float("nan"), high=1.0)))
+    comparison = harmless_results.compare_conditions(_manifest(), baseline, condition)
+    for change in (comparison["harmless"], comparison["mmlu"]):
+        assert change["nominal_interval"] is None
+        assert change["interval_status"] == "inconclusive" and change["interval_reason"] == "nonfinite_bootstrap"
+    assert comparison["harmless"]["delta"] == 0.25 and comparison["mmlu"]["delta"] == 0.5
