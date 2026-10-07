@@ -1,0 +1,52 @@
+{
+  "status": "frozen before final evaluation",
+  "frozen_utc": "2026-10-02T14:40:48.969951+00:00",
+  "rule": "maximize sign(alpha) * (real dev mean - baseline); exact ties lower |alpha|; random uses selected real alpha",
+  "block": 18,
+  "target_direction_norm": 12.335375785827637,
+  "final_model_calls_completed": false,
+  "behaviours": {
+    "honesty": {
+      "summary_sha256": "a3ba01e03b20fce38ed8cd302f26a33e5ea244f101dba13eeab12160ded5a669",
+      "panel_sha256": "a8c12d19fba5b5f22f519f47772c9a0e6b737c4e2e2896744a2923c18837b7e7",
+      "tensor_sha256": "99731efcc8753068a2957eef85e941dcb69a1b2ab24bc017705ce4ae019c3b23",
+      "implementation_commit": "97245720a513417f1502a068db981fd2e57507fb",
+      "planning_commit": "3f5efa10856199258cb8d06a4d48540ebcff82a3",
+      "uv_lock_sha256": "6a6ba0945441634f168435ffd3496a134b957f3b8dd67b2a9351a39f597ac250",
+      "selected_real_alphas": {
+        "positive": 2.0,
+        "negative": -2.0
+      },
+      "planned_final_conditions": [
+        "baseline",
+        "real_alpha_+2",
+        "random42_alpha_+2",
+        "random43_alpha_+2",
+        "real_alpha_-2",
+        "random42_alpha_-2",
+        "random43_alpha_-2"
+      ]
+    },
+    "sycophancy": {
+      "summary_sha256": "b26e89f8c3084fe07cd1547958a7cd1e89dbd7bd4658aaf85b2b067a2fc52efd",
+      "panel_sha256": "740fd18199358406bf104a631172684bcc0d03e691b17b7a51bbdf00f73d43fc",
+      "tensor_sha256": "9cbeee0d507468f7796c0c7d8f60868b1089f16f60abcf9ad6ab8d2bbb0a4b42",
+      "implementation_commit": "97245720a513417f1502a068db981fd2e57507fb",
+      "planning_commit": "3f5efa10856199258cb8d06a4d48540ebcff82a3",
+      "uv_lock_sha256": "6a6ba0945441634f168435ffd3496a134b957f3b8dd67b2a9351a39f597ac250",
+      "selected_real_alphas": {
+        "positive": 0.5,
+        "negative": -2.0
+      },
+      "planned_final_conditions": [
+        "baseline",
+        "real_alpha_+0.5",
+        "random42_alpha_+0.5",
+        "random43_alpha_+0.5",
+        "real_alpha_-2",
+        "random42_alpha_-2",
+        "random43_alpha_-2"
+      ]
+    }
+  }
+}

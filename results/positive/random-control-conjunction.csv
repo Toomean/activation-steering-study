@@ -1,0 +1,5 @@
+target,expected_direction,both_fixed_random_controls_supported,random42_supported,random43_supported,scope
+pooled,increase,True,True,True,these two fixed random orientations only
+cyber_intrusion,increase,True,True,True,these two fixed random orientations only
+dangerous_substances,increase,True,True,True,these two fixed random orientations only
+disinformation,increase,True,True,True,these two fixed random orientations only

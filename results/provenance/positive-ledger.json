@@ -1,0 +1,386 @@
+{
+  "admission": {
+    "admitted_at": "2026-10-05T19:04:28.140479+00:00",
+    "full_core_target": "11 development plus 13 final; medium scenario 37.945115 hours",
+    "hard_stop": "2026-10-07T20:00:00+00:00",
+    "interpretation": "Finite LONG scenario for 11 dev plus four pooled final conditions; not a runtime bound",
+    "remaining_hours": 48.925516536111104,
+    "reserve_description": "Accepted LONG pooled-subset scenario is 21.599915278844318 h: 1.25 times measured projection plus one largest whole-condition repeat. The 25% allowance covers ordinary runtime variation and routine provenance/persistence overhead; the explicit repeat reserve is not counted twice. Additional residual overhead is a prospective 1.0 h provision for process/setup interruptions and operator handling beyond routine checks, not an empirical timing estimate. Remaining pre-launch preparation elapses before actual admission and is not added again. Full positive core remains the target under the MEDIUM 37.945115 h scenario; only complete conditions/trios support their registered comparisons.",
+    "reserved_hours": 21.599915278844318,
+    "residual_overhead_hours": 1.0
+  },
+  "attempts": {
+    "development-baseline": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/development-baseline/attempt-001/output/completed.json",
+          "sha256": "959e08bd4074f0badc67317a0ffa426e4e1e138123dc04585435dfa11d6389c7"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/development-baseline/attempt-001/output",
+        "record_dir": "unpublished/positive/development-baseline/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "development-cyber_intrusion-real-a0p5": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/development-cyber_intrusion-real-a0p5/attempt-001/output/completed.json",
+          "sha256": "6c906aa05ce8635d9d39ef22f44282fdb7fc02e6ce06986c265df858a8c1767a"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/development-cyber_intrusion-real-a0p5/attempt-001/output",
+        "record_dir": "unpublished/positive/development-cyber_intrusion-real-a0p5/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "development-cyber_intrusion-real-a1": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/development-cyber_intrusion-real-a1/attempt-001/output/completed.json",
+          "sha256": "8429f9dd1b2a78f5a971438f6ad89f023cce309787ad0774847856eedfeced8e"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/development-cyber_intrusion-real-a1/attempt-001/output",
+        "record_dir": "unpublished/positive/development-cyber_intrusion-real-a1/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "development-cyber_intrusion-real-a2": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/development-cyber_intrusion-real-a2/attempt-001/output/completed.json",
+          "sha256": "aa1aa079c7cb6e8e5f9fd22325eb8ddaf4c4cd122af5a26fcbd32a60c2c59b6c"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/development-cyber_intrusion-real-a2/attempt-001/output",
+        "record_dir": "unpublished/positive/development-cyber_intrusion-real-a2/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "development-dangerous_substances-real-a0p5": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/development-dangerous_substances-real-a0p5/attempt-001/output/completed.json",
+          "sha256": "ccf14b055179f9cef7a588362bf2e4eeed8bfa3d544a7c8aab4b16c77a2cfb0c"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/development-dangerous_substances-real-a0p5/attempt-001/output",
+        "record_dir": "unpublished/positive/development-dangerous_substances-real-a0p5/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "development-dangerous_substances-real-a1": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/development-dangerous_substances-real-a1/attempt-001/output/completed.json",
+          "sha256": "1f3fbd98e58cabd0c342b74daf5c927231218a9643b5aa52f04760e568012f0c"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/development-dangerous_substances-real-a1/attempt-001/output",
+        "record_dir": "unpublished/positive/development-dangerous_substances-real-a1/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "development-dangerous_substances-real-a2": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/development-dangerous_substances-real-a2/attempt-001/output/completed.json",
+          "sha256": "61b2933aae98732dd1012add6cc8fe04865733d19e5b3f30c23bf8a869fdfaf1"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/development-dangerous_substances-real-a2/attempt-001/output",
+        "record_dir": "unpublished/positive/development-dangerous_substances-real-a2/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "development-disinformation-real-a0p5": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/development-disinformation-real-a0p5/attempt-001/output/completed.json",
+          "sha256": "a46be01c804d762fd51f9c76c36d2b36709e141838942524a26d5204beb0fa38"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/development-disinformation-real-a0p5/attempt-001/output",
+        "record_dir": "unpublished/positive/development-disinformation-real-a0p5/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "development-disinformation-real-a1": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/development-disinformation-real-a1/attempt-001/output/completed.json",
+          "sha256": "3cb3179b529dc318ddaa7edbef111b966de52eb1bb70790153a2358248e66a84"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/development-disinformation-real-a1/attempt-001/output",
+        "record_dir": "unpublished/positive/development-disinformation-real-a1/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "development-disinformation-real-a2": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/development-disinformation-real-a2/attempt-001/output/completed.json",
+          "sha256": "05ef210687b66e550354732e5e1d2f863635448320de49531b2c70894dfc10bb"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/development-disinformation-real-a2/attempt-001/output",
+        "record_dir": "unpublished/positive/development-disinformation-real-a2/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "development-pooled-real-a1": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/development-pooled-real-a1/attempt-001/output/completed.json",
+          "sha256": "49c085a9290a2e9461ef7c537dc7c1fc7a436e3391e3b612e1e5671478b305b3"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/development-pooled-real-a1/attempt-001/output",
+        "record_dir": "unpublished/positive/development-pooled-real-a1/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-baseline": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-baseline/attempt-001/output/completed.json",
+          "sha256": "f0278072579a4576be74d609c5cee8592f0d0785dc5e1f33c2e67f5e6a19bc0a"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-baseline/attempt-001/output",
+        "record_dir": "unpublished/positive/final-baseline/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-cyber_intrusion-random42": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-cyber_intrusion-random42/attempt-001/output/completed.json",
+          "sha256": "02f7c7f8bbf13b8e85100fd2a00f05b0a855aee05215abe133a4347769dd69e6"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-cyber_intrusion-random42/attempt-001/output",
+        "record_dir": "unpublished/positive/final-cyber_intrusion-random42/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-cyber_intrusion-random43": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-cyber_intrusion-random43/attempt-001/output/completed.json",
+          "sha256": "4e32de28d58bd5ff93f865a69c7f8229c473265ef5612c77ba87edfe659e457f"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-cyber_intrusion-random43/attempt-001/output",
+        "record_dir": "unpublished/positive/final-cyber_intrusion-random43/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-cyber_intrusion-real": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-cyber_intrusion-real/attempt-001/output/completed.json",
+          "sha256": "70e1822cecac4c569144b4a5d215135846961d5220959eaaea0fd727a44ad38c"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-cyber_intrusion-real/attempt-001/output",
+        "record_dir": "unpublished/positive/final-cyber_intrusion-real/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-dangerous_substances-random42": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-dangerous_substances-random42/attempt-001/output/completed.json",
+          "sha256": "26bd189628cf70217ed77f4f94e4b886fcf52ee309d0e5d1b332795c03963805"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-dangerous_substances-random42/attempt-001/output",
+        "record_dir": "unpublished/positive/final-dangerous_substances-random42/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-dangerous_substances-random43": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-dangerous_substances-random43/attempt-001/output/completed.json",
+          "sha256": "eb95fbe88f602081bc22291b4de38ecd58318a71de7660405714180d1b65e646"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-dangerous_substances-random43/attempt-001/output",
+        "record_dir": "unpublished/positive/final-dangerous_substances-random43/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-dangerous_substances-real": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-dangerous_substances-real/attempt-001/output/completed.json",
+          "sha256": "711d80c3802bd2cc5978cc94cdf49d086a6301f4137b5525808a2f6b147f5114"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-dangerous_substances-real/attempt-001/output",
+        "record_dir": "unpublished/positive/final-dangerous_substances-real/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-disinformation-random42": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-disinformation-random42/attempt-001/output/completed.json",
+          "sha256": "005549aa4b0514a63da6391b0ec2987be8f9ae9538fb514e17d3f840b6b284c9"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-disinformation-random42/attempt-001/output",
+        "record_dir": "unpublished/positive/final-disinformation-random42/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-disinformation-random43": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-disinformation-random43/attempt-001/output/completed.json",
+          "sha256": "9fb289ea8d649bdae493d5a0daad2a6f88b3e14d56ed245692cf4cca45cdd6fb"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-disinformation-random43/attempt-001/output",
+        "record_dir": "unpublished/positive/final-disinformation-random43/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-disinformation-real": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-disinformation-real/attempt-001/output/completed.json",
+          "sha256": "329e8e164605cebddfae96e21ca70f375cd8e17b02685b1b3c48e5f862c6da02"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-disinformation-real/attempt-001/output",
+        "record_dir": "unpublished/positive/final-disinformation-real/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-pooled-random42": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-pooled-random42/attempt-001/output/completed.json",
+          "sha256": "40f55a08da62b36623596a30fa475c42f3f96baf4f00e1daf5cfdda7d880fb81"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-pooled-random42/attempt-001/output",
+        "record_dir": "unpublished/positive/final-pooled-random42/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-pooled-random43": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-pooled-random43/attempt-001/output/completed.json",
+          "sha256": "e017ba37bbe1cf4a15327de0501e3ad7145da4f3dd0f26ffcd8865372866df9a"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-pooled-random43/attempt-001/output",
+        "record_dir": "unpublished/positive/final-pooled-random43/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ],
+    "final-pooled-real": [
+      {
+        "attempt": 1,
+        "completed": {
+          "path": "unpublished/positive/final-pooled-real/attempt-001/output/completed.json",
+          "sha256": "d0f0f7611a1ef4a4bd32f8d7801e3f8f520f0b720c8cba4e50e95cf9bdc94313"
+        },
+        "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+        "output_dir": "unpublished/positive/final-pooled-real/attempt-001/output",
+        "record_dir": "unpublished/positive/final-pooled-real/attempt-001",
+        "retry_reason": null,
+        "status": "completed"
+      }
+    ]
+  },
+  "audit_rank_sha256": "f1667cca071e5cf8628e02f0a34e450511f35064eee5bbbf2fab16ff127350d3",
+  "commits": {
+    "implementation": "249d0cd148d8e49fe1fd290012258ed618454f13",
+    "planning": "769591898db49c9eadb08eff3a55e5421f0e69d3"
+  },
+  "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+  "dose_freeze": {
+    "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+    "development": {
+      "development-baseline": "959e08bd4074f0badc67317a0ffa426e4e1e138123dc04585435dfa11d6389c7",
+      "development-cyber_intrusion-real-a0p5": "6c906aa05ce8635d9d39ef22f44282fdb7fc02e6ce06986c265df858a8c1767a",
+      "development-cyber_intrusion-real-a1": "8429f9dd1b2a78f5a971438f6ad89f023cce309787ad0774847856eedfeced8e",
+      "development-cyber_intrusion-real-a2": "aa1aa079c7cb6e8e5f9fd22325eb8ddaf4c4cd122af5a26fcbd32a60c2c59b6c",
+      "development-dangerous_substances-real-a0p5": "ccf14b055179f9cef7a588362bf2e4eeed8bfa3d544a7c8aab4b16c77a2cfb0c",
+      "development-dangerous_substances-real-a1": "1f3fbd98e58cabd0c342b74daf5c927231218a9643b5aa52f04760e568012f0c",
+      "development-dangerous_substances-real-a2": "61b2933aae98732dd1012add6cc8fe04865733d19e5b3f30c23bf8a869fdfaf1",
+      "development-disinformation-real-a0p5": "a46be01c804d762fd51f9c76c36d2b36709e141838942524a26d5204beb0fa38",
+      "development-disinformation-real-a1": "3cb3179b529dc318ddaa7edbef111b966de52eb1bb70790153a2358248e66a84",
+      "development-disinformation-real-a2": "05ef210687b66e550354732e5e1d2f863635448320de49531b2c70894dfc10bb",
+      "development-pooled-real-a1": "49c085a9290a2e9461ef7c537dc7c1fc7a436e3391e3b612e1e5671478b305b3"
+    },
+    "doses": {
+      "cyber_intrusion": 1.0,
+      "dangerous_substances": 1.0,
+      "disinformation": 1.0,
+      "pooled": 1.0
+    },
+    "selection": "Exact singleton-group refusal count distance from pooled +1; ties use lower dose"
+  },
+  "dose_freeze_sha256": "324ef96235bce83060d877bb53f0a9b9dd24009b709298d2157e3f0352cac852",
+  "ended_at": "2026-10-06T12:50:03.229908+00:00",
+  "freeze_sha256": "ce25b826040b5a1c58982a7f36a1e4b3a4a4b03d716ebe7a7cba4f9f1dbe2b46",
+  "population_sha256": "13e2e3bb320fcf577652c8a7bfdf27d945ebba85aa7fad273267ed436f8b486b",
+  "retry_used": false,
+  "schema_version": 1,
+  "status": "positive_complete"
+}

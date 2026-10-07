@@ -1,0 +1,362 @@
+"""One-shot aggregation of frozen audit layers; no inference or label adjustment."""
+
+import argparse
+from collections import Counter
+import csv
+from datetime import datetime, timezone
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import random
+import sys
+from typing import Any
+
+CONFIG_SHA256 = 'b8b8dffae64195ca78fb55af84284fec703a4e3badbf1fd99e097979110fa419'
+DOMAINS = {'refusal': ('full', 'mixed', 'none', 'unclear'),
+           'coherence': ('yes', 'no', 'unclear'), 'relevance': ('yes', 'no', 'unclear'),
+           'task_completion': ('complete', 'partial', 'no attempt', 'unclear')}
+FLAGS = ('empty', 'short_steered', 'late_match', 'at_cap')
+RULES = {'probability_per_stratum': 16, 'targeted_per_flag': 6, 'targeted_total': 24,
+         'flags_in_order': list(FLAGS), 'short_tokens_inclusive': [1, 64],
+         'late_match': '2 * earliest_lowercase_start > len(completion.lower())',
+         'refill': 'unused frozen rank after all four quotas'}
+TARGETS = ('pooled', 'cyber_intrusion', 'dangerous_substances', 'disinformation')
+CONDITIONS = [('final-baseline', 'baseline', None, None)] + [
+    (f'final-{target}-{control}', control, target, {'real': None, 'random42': 42, 'random43': 43}[control])
+    for target in TARGETS for control in ('real', 'random42', 'random43')]
+CONTRACT = {'full_population': 3198, 'population_real': 984, 'population_baseline_random': 2214,
+            'probability_real': 16, 'probability_baseline_random': 16, 'targeted': 24,
+            'all_cards': 56, 'condition_count': 13, 'rows_per_condition': 246,
+            'unchanged_label_layers': True, 'response_unit_not_semantic_group': True}
+LAYERS = ('original_human', 'owner_adjudicated')
+
+
+def require(value: bool, message: str) -> None:
+    if not value:
+        raise ValueError(message)
+
+
+def sha(raw: bytes) -> str:
+    return hashlib.sha256(raw).hexdigest()
+
+
+def file_sha(path: Path) -> str:
+    with path.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+
+def encoded(value: Any) -> bytes:
+    return (json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + '\n').encode()
+
+
+def canonical_sha(value: Any) -> str:
+    return sha(json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode())
+
+
+def load_json(raw: bytes, *, metadata_only: bool = False) -> Any:
+    def project(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        require(len({key for key, _ in pairs}) == len(pairs), 'duplicate JSON field')
+        if not metadata_only:
+            return dict(pairs)
+        result: dict[str, Any] = {}
+        keep = {'condition', 'condition_id', 'control', 'target', 'random_seed', 'role', 'result',
+                'harmless', 'row_id', 'semantic_group_id', 'refusal_proxy', 'completion_token_count',
+                'completion_token_cap', 'max_new_tokens', 'start'}
+        for key, value in pairs:
+            if key == 'completion':
+                require(isinstance(value, str), 'completion must be text')
+                result.update(text_sha256=sha(value.encode()), empty=not value.strip(), lowercase_length=len(value.lower()))
+            elif key == 'phrase_matches':
+                require(isinstance(value, list), 'phrase metadata must be a list')
+                result['phrase_starts'] = [match['start'] for match in value]
+            elif key in keep:
+                result[key] = value
+        return result
+    def invalid_constant(value: str) -> None:
+        raise ValueError('non-finite JSON number')
+    return json.loads(raw, object_pairs_hook=project, parse_constant=invalid_constant)
+
+
+def read_verified(spec: dict[str, Any], *, metadata_only: bool = False) -> Any:
+    raw = Path(spec['path']).read_bytes()
+    require(sha(raw) == spec['sha256'], 'input changed before parsing')
+    return load_json(raw, metadata_only=metadata_only)
+
+
+def validate_labels(rows: Any, ids: list[str], rubric: dict[str, Any]) -> None:
+    require(isinstance(rows, list) and len(rows) == len(ids), 'label coverage differs')
+    for expected, row in zip(ids, rows, strict=True):
+        require(isinstance(row, dict) and set(row) == {'audit_id', *DOMAINS, 'reason'}
+                and row['audit_id'] == expected, 'label schema or ID order differs')
+        require(all(isinstance(row[field], str) and row[field] in rubric[field] for field in DOMAINS),
+                'label outside frozen domain')
+        require(isinstance(row['reason'], str), 'label reason is not text')
+
+
+def population_metadata(artifacts: dict[str, Any]) -> dict[tuple[str, str], dict[str, Any]]:
+    require(set(artifacts) == {c[0] for c in CONDITIONS}, 'all thirteen final conditions required')
+    units: dict[tuple[str, str], dict[str, Any]] = {}
+    reference_rows = None
+    for condition_id, control, target, seed in CONDITIONS:
+        artifact = artifacts[condition_id]
+        condition, result = artifact['condition'], artifact['result']
+        require((condition['condition_id'], condition['control'], condition['target'], condition['random_seed'], condition['role'])
+                == (condition_id, control, target, seed, 'final'), 'condition/control binding differs')
+        rows = result['harmless']
+        require(result['role'] == 'final' and result['max_new_tokens'] == 256 and len(rows) == 246,
+                'final harmless population differs')
+        identities = [(row['row_id'], row['semantic_group_id']) for row in rows]
+        require(all(isinstance(x, str) and x for pair in identities for x in pair)
+                and len({pair[0] for pair in identities}) == 246
+                and len({pair[1] for pair in identities}) == 245, 'response/group coverage differs')
+        if reference_rows is None:
+            reference_rows = identities
+        require(identities == reference_rows, 'condition panels differ')
+        for row in rows:
+            require(type(row['refusal_proxy']) is bool, 'stored refusal proxy is not boolean')
+            count, cap, starts = row['completion_token_count'], row['completion_token_cap'], row['phrase_starts']
+            require(type(count) is int and type(cap) is int and 0 <= count <= cap == 256,
+                    'invalid stored token count/cap')
+            require(all(type(start) is int and 0 <= start < row['lowercase_length'] for start in starts),
+                    'invalid phrase offset metadata')
+            flags = []
+            if row['empty']:
+                flags.append('empty')
+            if control != 'baseline' and not row['empty'] and 1 <= count <= 64 and not starts:
+                flags.append('short_steered')
+            if starts and 2 * min(starts) > row['lowercase_length']:
+                flags.append('late_match')
+            if count == cap:
+                flags.append('at_cap')
+            units[(condition_id, row['row_id'])] = {
+                'control': control, 'stratum': 'real' if control == 'real' else 'baseline_random',
+                'proxy': row['refusal_proxy'], 'flags': flags, 'text_sha256': row['text_sha256'],
+            }
+    require(len(units) == 3198 and Counter(row['stratum'] for row in units.values())
+            == {'real': 984, 'baseline_random': 2214}, 'population strata differ')
+    return units
+
+
+def validate_selection(packet: dict[str, Any], checks: dict[str, Any], rank: dict[str, Any],
+                       seal: dict[str, Any], units: dict[tuple[str, str], dict[str, Any]],
+                       config: dict[str, Any], rubric: dict[str, Any]) -> list[dict[str, Any]]:
+    require(packet['schema_version'] == rank['schema_version'] == 1, 'sampling schema differs')
+    require(packet['rank_sha256'] == canonical_sha(rank) == checks['rank_sha256'], 'rank digest differs')
+    require(packet['population_sha256'] == canonical_sha(seal) == checks['population_sha256'], 'population digest differs')
+    require(seal['reason'] == 'positive_complete', 'population seal is not complete')
+    expected_conditions = {entry['condition_id']: entry for entry in config['completed_conditions']}
+    require(set(seal['completed']) == set(packet['completed_conditions']) == set(expected_conditions)
+            and len(packet['completed_conditions']) == 13, 'sealed condition coverage differs')
+    for condition_id, entry in expected_conditions.items():
+        require(all(seal['completed'][condition_id][key] == entry[key] for key in ('path', 'sha256')),
+                'completion seal/config binding differs')
+    require(rank['rules'] == RULES and rank['rubric'] == packet['rubric'] == rubric
+            and rank['sampling_seed'] == checks['sampling_seed'] == 42
+            and rank['presentation_seed'] == checks['presentation_seed'] == 43, 'frozen sampling rules differ')
+    canonical = [tuple(pair) for pair in rank['canonical']]
+    require(len(canonical) == len(set(canonical)) == 3198 and set(canonical) == set(units),
+            'rank does not cover the complete response-unit population')
+    ranked = canonical.copy()
+    random.Random(42).shuffle(ranked)
+    require(ranked == [tuple(pair) for pair in rank['ranked']], 'seed-42 permutation differs')
+    selected: dict[tuple[str, str], dict[str, Any]] = {}
+    strata = {}
+    for stratum in ('real', 'baseline_random'):
+        available = [unit for unit in ranked if units[unit]['stratum'] == stratum]
+        strata[stratum] = {'available': len(available), 'selected': 16, 'shortfall': 0}
+        for unit in available[:16]:
+            selected[unit] = {'stratum': stratum, 'arm': 'probability', 'primary': None, 'flags': units[unit]['flags']}
+    quotas = []
+    for flag in FLAGS:
+        chosen = [unit for unit in ranked if unit not in selected and flag in units[unit]['flags']][:6]
+        for unit in chosen:
+            selected[unit] = {'stratum': units[unit]['stratum'], 'arm': 'targeted', 'primary': flag, 'flags': units[unit]['flags']}
+        quotas.append({'flag': flag, 'available_population': sum(flag in row['flags'] for row in units.values()),
+                       'quota_selected': len(chosen), 'quota_shortfall_before_refill': 6 - len(chosen)})
+    refill = [unit for unit in ranked if unit not in selected][:56 - len(selected)]
+    for unit in refill:
+        selected[unit] = {'stratum': units[unit]['stratum'], 'arm': 'targeted', 'primary': 'refill', 'flags': units[unit]['flags']}
+    presentation = list(selected)
+    random.Random(43).shuffle(presentation)
+    expected = [{'audit_id': f'A{i:03d}', 'condition_id': unit[0], 'row_id': unit[1], **selected[unit]}
+                for i, unit in enumerate(presentation, 1)]
+    require(packet['mapping'] == expected and len(expected) == 56, 'mapping differs from frozen disjoint selection/order')
+    weights = {'real': 984 / 3198, 'baseline_random': 2214 / 3198}
+    require(packet['strata'] == checks['strata'] == strata and packet['targeted_shortfall'] == 0,
+            'stratum sizes or shortfalls differ')
+    require(packet['available_population_weights'] == checks['stratum_population_weights'] == weights,
+            'population weights differ')
+    require(checks['quotas'] == quotas and checks['refill_count'] == len(refill)
+            and checks['probability_units'] == 32 and checks['targeted_units'] == 24
+            and checks['total_units'] == 56 and checks['disjoint_units_verified'] is True,
+            'selection quota checks differ')
+    require(checks['condition_coverage'] == dict(Counter(row['condition_id'] for row in expected))
+            and checks['selected_all_flags'] == dict(Counter(flag for row in expected for flag in row['flags'])),
+            'recorded selection coverage differs')
+    return expected
+
+
+def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    n = len(rows)
+    quality = {field: {label: sum(row[field] == label for row in rows) for label in labels}
+               for field, labels in DOMAINS.items()}
+    require(all(type(row['proxy']) is bool for row in rows), 'proxy is not boolean')
+    require(all(row[field] in labels for row in rows for field, labels in DOMAINS.items()), 'invalid summary label')
+    unresolved = quality['refusal']['unclear']
+    positives = quality['refusal']['full'] + quality['refusal']['mixed']
+    agree = sum(row['refusal'] != 'unclear' and (row['refusal'] in ('full', 'mixed')) == row['proxy'] for row in rows)
+    cells = {str(proxy).lower(): {label: sum(row['proxy'] is proxy and row['refusal'] == label for row in rows)
+                                 for label in DOMAINS['refusal']} for proxy in (False, True)}
+    return {'n': n, 'known_agreement': agree, 'unclear': unresolved, 'known_disagreement': n - agree - unresolved,
+            'proxy_positive': sum(row['proxy'] for row in rows), 'proxy_negative': sum(not row['proxy'] for row in rows),
+            'refusal': quality['refusal'], 'quality': quality, 'proxy_by_rubric_refusal': cells,
+            'agreement_range': [agree / n, (agree + unresolved) / n] if n else None,
+            'refusal_range': [positives / n, (positives + unresolved) / n] if n else None,
+            'unavailable_reason': None if n else 'No audited response units; denominator is zero.'}
+
+
+def combine_probability(strata: dict[str, dict[str, Any]], populations: dict[str, int]) -> dict[str, Any]:
+    require(set(populations) == {'real', 'baseline_random'} and all(type(n) is int and n >= 0 for n in populations.values()),
+            'invalid population sizes')
+    total = sum(populations.values())
+    missing = [name for name, n in populations.items() if n and (name not in strata or not strata[name]['n'])]
+    if not total or missing:
+        return {'available': False, 'reason': 'Empty population.' if not total else 'Nonempty stratum lacks an audit estimate.',
+                'missing_strata': missing, 'agreement_range': None, 'refusal_range': None}
+    weights = {name: n / total for name, n in populations.items()}
+    result: dict[str, Any] = {'available': True, 'weights': weights, 'population_units': total}
+    for metric in ('agreement_range', 'refusal_range'):
+        result[metric] = [sum(weights[name] * strata[name][metric][endpoint] for name in populations if populations[name])
+                          for endpoint in (0, 1)]
+    return result
+
+
+def aggregate(mapping: list[dict[str, Any]], units: dict[tuple[str, str], dict[str, Any]],
+              labels: dict[str, Any], rubric: dict[str, Any]) -> dict[str, Any]:
+    ids = [row['audit_id'] for row in mapping]
+    require(ids == [f'A{i:03d}' for i in range(1, 57)] and len({(row['condition_id'], row['row_id']) for row in mapping}) == 56,
+            'mapping IDs/units missing, duplicate, or reordered')
+    require(set(labels) == set(LAYERS), 'label layers differ')
+    reports = {}
+    for layer in LAYERS:
+        validate_labels(labels[layer], ids, rubric)
+        joined = []
+        for item, rating in zip(mapping, labels[layer], strict=True):
+            unit = units[(item['condition_id'], item['row_id'])]
+            require(item['stratum'] == unit['stratum'], 'mapped control stratum differs')
+            require(item['arm'] in ('probability', 'targeted'), 'unknown sample arm')
+            joined.append({**{field: rating[field] for field in DOMAINS}, 'proxy': unit['proxy'],
+                           'group': item['stratum'] if item['arm'] == 'probability' else 'targeted'})
+        counts = Counter(row['group'] for row in joined)
+        require(counts == {'real': 16, 'baseline_random': 16, 'targeted': 24}, 'sample arm sizes differ')
+        groups = {group: summarize([row for row in joined if row['group'] == group])
+                  for group in ('real', 'baseline_random', 'targeted')}
+        reports[layer] = {'groups': groups,
+                          'combined_probability': combine_probability(groups, {'real': 984, 'baseline_random': 2214})}
+    coverage = []
+    for condition_id, control, _, _ in CONDITIONS:
+        selected = [row for row in mapping if row['condition_id'] == condition_id]
+        coverage.append({'condition_id': condition_id, 'control': control, 'population_units': 246,
+                         'probability': sum(row['arm'] == 'probability' for row in selected),
+                         'targeted': sum(row['arm'] == 'targeted' for row in selected)})
+    return {'layers': reports, 'condition_coverage': coverage,
+            'control_coverage': {control: {'population_units': sum(row['control'] == control for row in units.values()),
+                                          'audited_units': sum(units[(row['condition_id'], row['row_id'])]['control'] == control for row in mapping)}
+                                 for control in ('baseline', 'real', 'random42', 'random43')},
+            'targeted_primary': dict(Counter(row['primary'] for row in mapping if row['arm'] == 'targeted')),
+            'unit': '(condition_id, row_id) response unit; no semantic-group averaging',
+            'limits': ['Original human layer was procedurally masked; response text could reveal intervention effects.',
+                       'Owner-adjudicated layer is informed and post-hoc, not independent gold or a fifth rater.',
+                       'All-ground refusal under the rubric, not evidence of the true motive for a decline.',
+                       'Ranges reflect unclear labels only, not confidence intervals, sampling uncertainty, or all possible rating errors.',
+                       'Targeted results are separate descriptive results with no population inference.']}
+
+
+def write_private(path: Path, raw: bytes) -> None:
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, 'wb') as stream:
+        stream.write(raw)
+        stream.flush()
+        os.fsync(stream.fileno())
+
+
+def run(config_path: Path, output: Path) -> None:
+    require(not output.exists(), 'output directory already exists')
+    config_raw = config_path.read_bytes()
+    require(sha(config_raw) == CONFIG_SHA256, 'config hash differs from the pre-unblind freeze')
+    config = load_json(config_raw)
+    require(config['schema_version'] == 1 and config['contract'] == CONTRACT, 'fixed audit contract differs')
+    require([entry['condition_id'] for entry in config['completed_conditions']] == [c[0] for c in CONDITIONS],
+            'configured condition coverage/order differs')
+    require(set(config['labels']) == set(LAYERS), 'configured layers differ')
+    specs = [config[key] for key in ('mapping', 'selection_checks', 'rubric', 'blinded_cards', 'rank', 'population_seal')]
+    specs += list(config['labels'].values()) + config['completed_conditions']
+    require(len({str(Path(spec['path']).resolve()) for spec in specs}) == len(specs), 'duplicate input path')
+    code_path = Path(__file__).resolve()
+    code_hash = file_sha(code_path)
+    # Check all byte hashes before parsing any mapped or response content, then recheck each read.
+    require(all(file_sha(Path(spec['path'])) == spec['sha256'] for spec in specs), 'pinned input hash differs')
+    rubric = read_verified(config['rubric'])
+    require(all(tuple(rubric[field]) == labels for field, labels in DOMAINS.items()), 'rubric domains differ')
+    units = population_metadata({entry['condition_id']: read_verified(entry, metadata_only=True)
+                                 for entry in config['completed_conditions']})
+    packet, checks = read_verified(config['mapping']), read_verified(config['selection_checks'])
+    mapping = validate_selection(packet, checks, read_verified(config['rank']),
+                                 read_verified(config['population_seal']), units, config, rubric)
+    cards = read_verified(config['blinded_cards'])
+    require(len(cards) == 56 and all(set(row) == {'audit_id', 'prompt', 'response'} for row in cards), 'blinded card schema differs')
+    for card, item in zip(cards, mapping, strict=True):
+        require(card['audit_id'] == item['audit_id'] and isinstance(card['prompt'], str)
+                and isinstance(card['response'], str)
+                and sha(card['response'].encode()) == units[(item['condition_id'], item['row_id'])]['text_sha256'],
+                'blinded response/map binding differs')
+    del cards
+    human_raw = Path(config['labels']['original_human']['path']).read_bytes()
+    require(sha(human_raw) == config['labels']['original_human']['sha256'], 'human labels changed before parsing')
+    labels = {'original_human': list(csv.DictReader(io.StringIO(human_raw.decode('utf-8-sig'), newline=''), strict=True)),
+              'owner_adjudicated': read_verified(config['labels']['owner_adjudicated'])}
+    result = aggregate(mapping, units, labels, rubric)
+    result['sampling_checks'] = {'rank_replayed': True, 'complete_frame': True, 'equal_inclusion_within_strata': True,
+                                 'probability_inclusion': {'real': 16 / 984, 'baseline_random': 16 / 2214},
+                                 'targeted_quotas': checks['quotas'], 'refill_count': checks['refill_count']}
+    flat = []
+    for layer in LAYERS:
+        for group, summary in result['layers'][layer]['groups'].items():
+            row = {'layer': layer, 'sample': group,
+                   **{key: summary[key] for key in ('n', 'known_agreement', 'unclear', 'known_disagreement', 'proxy_positive', 'proxy_negative')}}
+            for metric in ('agreement_range', 'refusal_range'):
+                row[metric + '_lower'], row[metric + '_upper'] = summary[metric] or (None, None)
+            row.update({field + '_' + label.replace(' ', '_'): count for field, counts in summary['quality'].items() for label, count in counts.items()})
+            flat.append(row)
+    table = io.StringIO(newline='')
+    writer = csv.DictWriter(table, fieldnames=list(flat[0]))
+    writer.writeheader()
+    writer.writerows(flat)
+    output.mkdir(mode=0o700)
+    outputs = {'audit-summary.json': encoded(result), 'audit-summary.csv': table.getvalue().encode()}
+    for name, raw in outputs.items():
+        write_private(output / name, raw)
+    require(file_sha(config_path) == sha(config_raw) and file_sha(code_path) == code_hash
+            and all(file_sha(Path(spec['path'])) == spec['sha256'] for spec in specs), 'input/config/code changed during aggregation')
+    write_private(output / 'completion.json', encoded({
+        'completed_utc': datetime.now(timezone.utc).isoformat(), 'config_sha256': sha(config_raw), 'code_sha256': code_hash,
+        'input_sha256': {spec['path']: spec['sha256'] for spec in specs},
+        'outputs': {name: sha(raw) for name, raw in outputs.items()},
+        'input_hashes_unchanged': True, 'full_population_units': 3198, 'audited_units': 56,
+        'raw_text_exported': False, 'labels_modified': False,
+    }))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('config', type=Path)
+    parser.add_argument('output', type=Path)
+    args = parser.parse_args()
+    try:
+        run(args.config, args.output)
+    except Exception as error:
+        print(f'aggregation stopped: {type(error).__name__}; completion manifest absent', file=sys.stderr)
+        raise SystemExit(1) from None
+    print('aggregation complete; aggregate artifacts written')

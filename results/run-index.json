@@ -1,0 +1,606 @@
+{
+  "schema_version": 1,
+  "scope": "36 completed positive-core and negative-MMLU conditions; first attempts; no new scoring",
+  "runs": [
+    {
+      "condition_id": "development-baseline",
+      "campaign": "positive",
+      "projection": "results/runs/development-baseline.json",
+      "original_run_manifest_sha256": "90f0f6bba62271bc08fecb4ce5fef714a261540349d51ed791956d0d67f08fd9",
+      "completed_sha256": "959e08bd4074f0badc67317a0ffa426e4e1e138123dc04585435dfa11d6389c7",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 0.0,
+        "condition_id": "development-baseline",
+        "control": "baseline",
+        "random_seed": null,
+        "role": "development",
+        "target": null
+      }
+    },
+    {
+      "condition_id": "development-cyber_intrusion-real-a0p5",
+      "campaign": "positive",
+      "projection": "results/runs/development-cyber_intrusion-real-a0p5.json",
+      "original_run_manifest_sha256": "6251998a2964d433a3f970907e711cfb5ac1b2d379099be97aa9a53b49773e01",
+      "completed_sha256": "6c906aa05ce8635d9d39ef22f44282fdb7fc02e6ce06986c265df858a8c1767a",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 0.5,
+        "condition_id": "development-cyber_intrusion-real-a0p5",
+        "control": "real",
+        "random_seed": null,
+        "role": "development",
+        "target": "cyber_intrusion"
+      }
+    },
+    {
+      "condition_id": "development-cyber_intrusion-real-a1",
+      "campaign": "positive",
+      "projection": "results/runs/development-cyber_intrusion-real-a1.json",
+      "original_run_manifest_sha256": "e3189e4845d94e5ed4282cc868e1788914e96eb3badc99346a6d35004313708d",
+      "completed_sha256": "8429f9dd1b2a78f5a971438f6ad89f023cce309787ad0774847856eedfeced8e",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "development-cyber_intrusion-real-a1",
+        "control": "real",
+        "random_seed": null,
+        "role": "development",
+        "target": "cyber_intrusion"
+      }
+    },
+    {
+      "condition_id": "development-cyber_intrusion-real-a2",
+      "campaign": "positive",
+      "projection": "results/runs/development-cyber_intrusion-real-a2.json",
+      "original_run_manifest_sha256": "1cecfe26bc7212a5018e0473be74fa50b1f32c611a9bd5c3e0111921ae01d6e8",
+      "completed_sha256": "aa1aa079c7cb6e8e5f9fd22325eb8ddaf4c4cd122af5a26fcbd32a60c2c59b6c",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 2.0,
+        "condition_id": "development-cyber_intrusion-real-a2",
+        "control": "real",
+        "random_seed": null,
+        "role": "development",
+        "target": "cyber_intrusion"
+      }
+    },
+    {
+      "condition_id": "development-dangerous_substances-real-a0p5",
+      "campaign": "positive",
+      "projection": "results/runs/development-dangerous_substances-real-a0p5.json",
+      "original_run_manifest_sha256": "1eab5a25b9b1c9fe0d7f5d8f7c03bea6504b4676bbdd2d9b7026d3a393ea4a30",
+      "completed_sha256": "ccf14b055179f9cef7a588362bf2e4eeed8bfa3d544a7c8aab4b16c77a2cfb0c",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 0.5,
+        "condition_id": "development-dangerous_substances-real-a0p5",
+        "control": "real",
+        "random_seed": null,
+        "role": "development",
+        "target": "dangerous_substances"
+      }
+    },
+    {
+      "condition_id": "development-dangerous_substances-real-a1",
+      "campaign": "positive",
+      "projection": "results/runs/development-dangerous_substances-real-a1.json",
+      "original_run_manifest_sha256": "d4b672df66af107f7d267d520131630958a0c9566e3edd99d42e2c42648a6abe",
+      "completed_sha256": "1f3fbd98e58cabd0c342b74daf5c927231218a9643b5aa52f04760e568012f0c",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "development-dangerous_substances-real-a1",
+        "control": "real",
+        "random_seed": null,
+        "role": "development",
+        "target": "dangerous_substances"
+      }
+    },
+    {
+      "condition_id": "development-dangerous_substances-real-a2",
+      "campaign": "positive",
+      "projection": "results/runs/development-dangerous_substances-real-a2.json",
+      "original_run_manifest_sha256": "c2fb510d0840e00fc6396c806f7721333271ab99ecd00e353cb0ca73c6cb2536",
+      "completed_sha256": "61b2933aae98732dd1012add6cc8fe04865733d19e5b3f30c23bf8a869fdfaf1",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 2.0,
+        "condition_id": "development-dangerous_substances-real-a2",
+        "control": "real",
+        "random_seed": null,
+        "role": "development",
+        "target": "dangerous_substances"
+      }
+    },
+    {
+      "condition_id": "development-disinformation-real-a0p5",
+      "campaign": "positive",
+      "projection": "results/runs/development-disinformation-real-a0p5.json",
+      "original_run_manifest_sha256": "acb4c7ea83b4b81d9276eac98a2bf3b721814d39037531d1962c0fa7d36cb6f9",
+      "completed_sha256": "a46be01c804d762fd51f9c76c36d2b36709e141838942524a26d5204beb0fa38",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 0.5,
+        "condition_id": "development-disinformation-real-a0p5",
+        "control": "real",
+        "random_seed": null,
+        "role": "development",
+        "target": "disinformation"
+      }
+    },
+    {
+      "condition_id": "development-disinformation-real-a1",
+      "campaign": "positive",
+      "projection": "results/runs/development-disinformation-real-a1.json",
+      "original_run_manifest_sha256": "ba2379067dd11b4ac4a28bd0f74fc063c7676ef0a4ae34730f41e8ee49fa8e29",
+      "completed_sha256": "3cb3179b529dc318ddaa7edbef111b966de52eb1bb70790153a2358248e66a84",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "development-disinformation-real-a1",
+        "control": "real",
+        "random_seed": null,
+        "role": "development",
+        "target": "disinformation"
+      }
+    },
+    {
+      "condition_id": "development-disinformation-real-a2",
+      "campaign": "positive",
+      "projection": "results/runs/development-disinformation-real-a2.json",
+      "original_run_manifest_sha256": "579ae85b96f6fbe5fe9f63142f5e4e1a352026379e2f298382e6ea4ab2bf9197",
+      "completed_sha256": "05ef210687b66e550354732e5e1d2f863635448320de49531b2c70894dfc10bb",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 2.0,
+        "condition_id": "development-disinformation-real-a2",
+        "control": "real",
+        "random_seed": null,
+        "role": "development",
+        "target": "disinformation"
+      }
+    },
+    {
+      "condition_id": "development-pooled-real-a1",
+      "campaign": "positive",
+      "projection": "results/runs/development-pooled-real-a1.json",
+      "original_run_manifest_sha256": "5e405cbe97fd2c641d53a4b25fccb1657313fc0168d2012ef2726d678c25443f",
+      "completed_sha256": "49c085a9290a2e9461ef7c537dc7c1fc7a436e3391e3b612e1e5671478b305b3",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "development-pooled-real-a1",
+        "control": "real",
+        "random_seed": null,
+        "role": "development",
+        "target": "pooled"
+      }
+    },
+    {
+      "condition_id": "final-baseline",
+      "campaign": "positive",
+      "projection": "results/runs/final-baseline.json",
+      "original_run_manifest_sha256": "908c977678cfb4ab29c927f44072f0460083c7be138a680548bc0bd49aee0c11",
+      "completed_sha256": "f0278072579a4576be74d609c5cee8592f0d0785dc5e1f33c2e67f5e6a19bc0a",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 0.0,
+        "condition_id": "final-baseline",
+        "control": "baseline",
+        "random_seed": null,
+        "role": "final",
+        "target": null
+      }
+    },
+    {
+      "condition_id": "final-cyber_intrusion-random42",
+      "campaign": "positive",
+      "projection": "results/runs/final-cyber_intrusion-random42.json",
+      "original_run_manifest_sha256": "dd7be940b399b7514378ce7e02a2f3fbc98019e4a29fb5fe154cb37c44d5987d",
+      "completed_sha256": "02f7c7f8bbf13b8e85100fd2a00f05b0a855aee05215abe133a4347769dd69e6",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-cyber_intrusion-random42",
+        "control": "random42",
+        "random_seed": 42,
+        "role": "final",
+        "target": "cyber_intrusion"
+      }
+    },
+    {
+      "condition_id": "final-cyber_intrusion-random43",
+      "campaign": "positive",
+      "projection": "results/runs/final-cyber_intrusion-random43.json",
+      "original_run_manifest_sha256": "eedc117b8f29fde9591b423099f7db3b0094435339abad8b8fd6a0d7be5f2d1d",
+      "completed_sha256": "4e32de28d58bd5ff93f865a69c7f8229c473265ef5612c77ba87edfe659e457f",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-cyber_intrusion-random43",
+        "control": "random43",
+        "random_seed": 43,
+        "role": "final",
+        "target": "cyber_intrusion"
+      }
+    },
+    {
+      "condition_id": "final-cyber_intrusion-real",
+      "campaign": "positive",
+      "projection": "results/runs/final-cyber_intrusion-real.json",
+      "original_run_manifest_sha256": "9727ee11b401875c4d4056680da731a69d4d7f49055a2261e1f2d56a606f42e4",
+      "completed_sha256": "70e1822cecac4c569144b4a5d215135846961d5220959eaaea0fd727a44ad38c",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-cyber_intrusion-real",
+        "control": "real",
+        "random_seed": null,
+        "role": "final",
+        "target": "cyber_intrusion"
+      }
+    },
+    {
+      "condition_id": "final-dangerous_substances-random42",
+      "campaign": "positive",
+      "projection": "results/runs/final-dangerous_substances-random42.json",
+      "original_run_manifest_sha256": "966b4b5c24ff0f95d5848f34c4736d4087a6cc2f8a42aec3aa20da0b60ccc381",
+      "completed_sha256": "26bd189628cf70217ed77f4f94e4b886fcf52ee309d0e5d1b332795c03963805",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-dangerous_substances-random42",
+        "control": "random42",
+        "random_seed": 42,
+        "role": "final",
+        "target": "dangerous_substances"
+      }
+    },
+    {
+      "condition_id": "final-dangerous_substances-random43",
+      "campaign": "positive",
+      "projection": "results/runs/final-dangerous_substances-random43.json",
+      "original_run_manifest_sha256": "0f48f71ebd99a980ae7dfdc42c24b062c23170a4921a377a6273388e007decc5",
+      "completed_sha256": "eb95fbe88f602081bc22291b4de38ecd58318a71de7660405714180d1b65e646",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-dangerous_substances-random43",
+        "control": "random43",
+        "random_seed": 43,
+        "role": "final",
+        "target": "dangerous_substances"
+      }
+    },
+    {
+      "condition_id": "final-dangerous_substances-real",
+      "campaign": "positive",
+      "projection": "results/runs/final-dangerous_substances-real.json",
+      "original_run_manifest_sha256": "cdc822629a266cc480d7ab90f53d79a13f0ba0ae7fa0daa11e3bd68fe040c0a4",
+      "completed_sha256": "711d80c3802bd2cc5978cc94cdf49d086a6301f4137b5525808a2f6b147f5114",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-dangerous_substances-real",
+        "control": "real",
+        "random_seed": null,
+        "role": "final",
+        "target": "dangerous_substances"
+      }
+    },
+    {
+      "condition_id": "final-disinformation-random42",
+      "campaign": "positive",
+      "projection": "results/runs/final-disinformation-random42.json",
+      "original_run_manifest_sha256": "e312f7c0c1517361b07ad62860e3df4076b7fca45ac7c549156e8f3804a304f5",
+      "completed_sha256": "005549aa4b0514a63da6391b0ec2987be8f9ae9538fb514e17d3f840b6b284c9",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-disinformation-random42",
+        "control": "random42",
+        "random_seed": 42,
+        "role": "final",
+        "target": "disinformation"
+      }
+    },
+    {
+      "condition_id": "final-disinformation-random43",
+      "campaign": "positive",
+      "projection": "results/runs/final-disinformation-random43.json",
+      "original_run_manifest_sha256": "f34edf9647bfe3581ae3c24e21f381adcf78ba45f50c1da61995a787eca3ba7b",
+      "completed_sha256": "9fb289ea8d649bdae493d5a0daad2a6f88b3e14d56ed245692cf4cca45cdd6fb",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-disinformation-random43",
+        "control": "random43",
+        "random_seed": 43,
+        "role": "final",
+        "target": "disinformation"
+      }
+    },
+    {
+      "condition_id": "final-disinformation-real",
+      "campaign": "positive",
+      "projection": "results/runs/final-disinformation-real.json",
+      "original_run_manifest_sha256": "f721a8376844f3112726e16dc64eded9df879bffeedb7b7bba75f991aaa75424",
+      "completed_sha256": "329e8e164605cebddfae96e21ca70f375cd8e17b02685b1b3c48e5f862c6da02",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-disinformation-real",
+        "control": "real",
+        "random_seed": null,
+        "role": "final",
+        "target": "disinformation"
+      }
+    },
+    {
+      "condition_id": "final-pooled-random42",
+      "campaign": "positive",
+      "projection": "results/runs/final-pooled-random42.json",
+      "original_run_manifest_sha256": "71122185667ed88552f1a822f2e58a1a2891a8eb7d828398c52f903edc930538",
+      "completed_sha256": "40f55a08da62b36623596a30fa475c42f3f96baf4f00e1daf5cfdda7d880fb81",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-pooled-random42",
+        "control": "random42",
+        "random_seed": 42,
+        "role": "final",
+        "target": "pooled"
+      }
+    },
+    {
+      "condition_id": "final-pooled-random43",
+      "campaign": "positive",
+      "projection": "results/runs/final-pooled-random43.json",
+      "original_run_manifest_sha256": "5fa3704b940c0cd7352c8d81b057afb6c0fa1fe4ed75cc4648348d1cc687a8bc",
+      "completed_sha256": "e017ba37bbe1cf4a15327de0501e3ad7145da4f3dd0f26ffcd8865372866df9a",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-pooled-random43",
+        "control": "random43",
+        "random_seed": 43,
+        "role": "final",
+        "target": "pooled"
+      }
+    },
+    {
+      "condition_id": "final-pooled-real",
+      "campaign": "positive",
+      "projection": "results/runs/final-pooled-real.json",
+      "original_run_manifest_sha256": "f6a774aa2a22f67625581b55c0c307664476bc30c8d253737217e61ee491b1ea",
+      "completed_sha256": "d0f0f7611a1ef4a4bd32f8d7801e3f8f520f0b720c8cba4e50e95cf9bdc94313",
+      "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+      "condition": {
+        "alpha": 1.0,
+        "condition_id": "final-pooled-real",
+        "control": "real",
+        "random_seed": null,
+        "role": "final",
+        "target": "pooled"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-cyber_intrusion-random42",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-cyber_intrusion-random42.json",
+      "original_run_manifest_sha256": "c5266f3f8dc694e97b8d9ddca0575354f066af6eb101ad29113db83ffb2c8747",
+      "completed_sha256": "6491bd2e76f3d6e1593c9cf963eadd1f9d6da8bbac04590bf4dbd85be5a06b3f",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-cyber_intrusion-random42",
+        "control": "random42",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": 42,
+        "role": "final",
+        "target": "cyber_intrusion"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-cyber_intrusion-random43",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-cyber_intrusion-random43.json",
+      "original_run_manifest_sha256": "0c22e2ce44ef17606e707f55c7669b71c8b4379224d890c12a61ee4103364aad",
+      "completed_sha256": "74eec9f7892cd281826b79e45dbf3e83826b4b8c931907ed307bb5087487e5b1",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-cyber_intrusion-random43",
+        "control": "random43",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": 43,
+        "role": "final",
+        "target": "cyber_intrusion"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-cyber_intrusion-real",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-cyber_intrusion-real.json",
+      "original_run_manifest_sha256": "3f9a50444edfa98a9ec36f28559e1dbc92c55297c9fbcb57470dd7dd42208205",
+      "completed_sha256": "dabd6cf97ab8cab362e9788b8ef8a77966309a5dbc854493b346626cfb424208",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-cyber_intrusion-real",
+        "control": "real",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": null,
+        "role": "final",
+        "target": "cyber_intrusion"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-dangerous_substances-random42",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-dangerous_substances-random42.json",
+      "original_run_manifest_sha256": "dfed641205e4c7225099f53275aa11ce08da5e545b2816d1b37baddcdc68a7ec",
+      "completed_sha256": "9bce3c214aa32bc2b4d0a4a6b92d6b953278c83dea310fa512c1116cf9ed0207",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-dangerous_substances-random42",
+        "control": "random42",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": 42,
+        "role": "final",
+        "target": "dangerous_substances"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-dangerous_substances-random43",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-dangerous_substances-random43.json",
+      "original_run_manifest_sha256": "4edf4e4e44f2f0da4b468cf234ad2584db7a867602d48053ca823e6eea93d155",
+      "completed_sha256": "9d2c44e01bcba8b0b40b35e3ff7034201f09f2b3de5cf97e6144580a04bc1428",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-dangerous_substances-random43",
+        "control": "random43",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": 43,
+        "role": "final",
+        "target": "dangerous_substances"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-dangerous_substances-real",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-dangerous_substances-real.json",
+      "original_run_manifest_sha256": "35c9aa310a8958fad79708328822055a42f128bd883812e4af0fdb580e830ec7",
+      "completed_sha256": "27c3b44161abb3314487e93f5f98057a515cfc83779def746809df749942ec92",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-dangerous_substances-real",
+        "control": "real",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": null,
+        "role": "final",
+        "target": "dangerous_substances"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-disinformation-random42",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-disinformation-random42.json",
+      "original_run_manifest_sha256": "c685b08c4b85fdbc0d850e62e8924a96cfdf8fd944e431329e0fd1f32dcb8620",
+      "completed_sha256": "604b94115082ecbcf9b547af9aba38f2abcaacd7bd79c450183495bb331120a4",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-disinformation-random42",
+        "control": "random42",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": 42,
+        "role": "final",
+        "target": "disinformation"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-disinformation-random43",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-disinformation-random43.json",
+      "original_run_manifest_sha256": "9fbb7c87adaab671fc83d48af488acc4ba389e1777a277612c14e3e73d4c3ea9",
+      "completed_sha256": "32d393e0a272ddce9af0bfd5d669ff5c35731da79e2db30227479bb8ce605f5d",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-disinformation-random43",
+        "control": "random43",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": 43,
+        "role": "final",
+        "target": "disinformation"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-disinformation-real",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-disinformation-real.json",
+      "original_run_manifest_sha256": "e1eef1c8b6dc3fc84cb8d30011feea91f18437850ba35c2a1fc7c71e7ec97512",
+      "completed_sha256": "2146cef99ff8f1f03ac02ef02584e82e309e6c66f3c2bfb5a1c832b3579212e4",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-disinformation-real",
+        "control": "real",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": null,
+        "role": "final",
+        "target": "disinformation"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-pooled-random42",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-pooled-random42.json",
+      "original_run_manifest_sha256": "c9627d96c4018cc08d90eee560b0c13c87b20674bb3e574a873a4bea0462f5c0",
+      "completed_sha256": "5bff4b84fa1cf625b62eada38559c24a23faf5706b84c2301ea45728bc5e8cff",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-pooled-random42",
+        "control": "random42",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": 42,
+        "role": "final",
+        "target": "pooled"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-pooled-random43",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-pooled-random43.json",
+      "original_run_manifest_sha256": "529c66e37ccf829495f377408d82b51c3d24653a58f57921bc43f99b996d2916",
+      "completed_sha256": "c53470a99b1a191cb928401f2a36e5d50b6019dfaaca30e862ce5c46917b455a",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-pooled-random43",
+        "control": "random43",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": 43,
+        "role": "final",
+        "target": "pooled"
+      }
+    },
+    {
+      "condition_id": "negative-mmlu-pooled-real",
+      "campaign": "negative",
+      "projection": "results/runs/negative-mmlu-pooled-real.json",
+      "original_run_manifest_sha256": "5ad57b31453c84272ae2d5b408fcd02a2a028214e096dbaefbe9ecc37d3947b4",
+      "completed_sha256": "1724932c487c722cb1d53862de79f1ce8eaa48632a0fab7769d165f97a52a1fa",
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "condition": {
+        "alpha": -1.0,
+        "condition_id": "negative-mmlu-pooled-real",
+        "control": "real",
+        "endpoint": "mmlu",
+        "layer_index": 14,
+        "random_seed": null,
+        "role": "final",
+        "target": "pooled"
+      }
+    }
+  ]
+}

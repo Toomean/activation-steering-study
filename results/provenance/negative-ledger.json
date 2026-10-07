@@ -1,0 +1,147 @@
+{
+  "attempts": {
+    "negative-mmlu-cyber_intrusion-random42": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-cyber_intrusion-random42/attempt-001/output/completed.json",
+        "sha256": "6491bd2e76f3d6e1593c9cf963eadd1f9d6da8bbac04590bf4dbd85be5a06b3f"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-cyber_intrusion-random42/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-cyber_intrusion-random42/attempt-001",
+      "status": "completed"
+    },
+    "negative-mmlu-cyber_intrusion-random43": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-cyber_intrusion-random43/attempt-001/output/completed.json",
+        "sha256": "74eec9f7892cd281826b79e45dbf3e83826b4b8c931907ed307bb5087487e5b1"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-cyber_intrusion-random43/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-cyber_intrusion-random43/attempt-001",
+      "status": "completed"
+    },
+    "negative-mmlu-cyber_intrusion-real": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-cyber_intrusion-real/attempt-001/output/completed.json",
+        "sha256": "dabd6cf97ab8cab362e9788b8ef8a77966309a5dbc854493b346626cfb424208"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-cyber_intrusion-real/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-cyber_intrusion-real/attempt-001",
+      "status": "completed"
+    },
+    "negative-mmlu-dangerous_substances-random42": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-dangerous_substances-random42/attempt-001/output/completed.json",
+        "sha256": "9bce3c214aa32bc2b4d0a4a6b92d6b953278c83dea310fa512c1116cf9ed0207"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-dangerous_substances-random42/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-dangerous_substances-random42/attempt-001",
+      "status": "completed"
+    },
+    "negative-mmlu-dangerous_substances-random43": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-dangerous_substances-random43/attempt-001/output/completed.json",
+        "sha256": "9d2c44e01bcba8b0b40b35e3ff7034201f09f2b3de5cf97e6144580a04bc1428"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-dangerous_substances-random43/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-dangerous_substances-random43/attempt-001",
+      "status": "completed"
+    },
+    "negative-mmlu-dangerous_substances-real": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-dangerous_substances-real/attempt-001/output/completed.json",
+        "sha256": "27c3b44161abb3314487e93f5f98057a515cfc83779def746809df749942ec92"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-dangerous_substances-real/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-dangerous_substances-real/attempt-001",
+      "status": "completed"
+    },
+    "negative-mmlu-disinformation-random42": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-disinformation-random42/attempt-001/output/completed.json",
+        "sha256": "604b94115082ecbcf9b547af9aba38f2abcaacd7bd79c450183495bb331120a4"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-disinformation-random42/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-disinformation-random42/attempt-001",
+      "status": "completed"
+    },
+    "negative-mmlu-disinformation-random43": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-disinformation-random43/attempt-001/output/completed.json",
+        "sha256": "32d393e0a272ddce9af0bfd5d669ff5c35731da79e2db30227479bb8ce605f5d"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-disinformation-random43/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-disinformation-random43/attempt-001",
+      "status": "completed"
+    },
+    "negative-mmlu-disinformation-real": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-disinformation-real/attempt-001/output/completed.json",
+        "sha256": "2146cef99ff8f1f03ac02ef02584e82e309e6c66f3c2bfb5a1c832b3579212e4"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-disinformation-real/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-disinformation-real/attempt-001",
+      "status": "completed"
+    },
+    "negative-mmlu-pooled-random42": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-pooled-random42/attempt-001/output/completed.json",
+        "sha256": "5bff4b84fa1cf625b62eada38559c24a23faf5706b84c2301ea45728bc5e8cff"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-pooled-random42/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-pooled-random42/attempt-001",
+      "status": "completed"
+    },
+    "negative-mmlu-pooled-random43": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-pooled-random43/attempt-001/output/completed.json",
+        "sha256": "c53470a99b1a191cb928401f2a36e5d50b6019dfaaca30e862ce5c46917b455a"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-pooled-random43/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-pooled-random43/attempt-001",
+      "status": "completed"
+    },
+    "negative-mmlu-pooled-real": {
+      "attempt": 1,
+      "completed": {
+        "path": "unpublished/negative/negative-mmlu-pooled-real/attempt-001/output/completed.json",
+        "sha256": "1724932c487c722cb1d53862de79f1ce8eaa48632a0fab7769d165f97a52a1fa"
+      },
+      "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+      "output_dir": "unpublished/negative/negative-mmlu-pooled-real/attempt-001/output",
+      "record_dir": "unpublished/negative/negative-mmlu-pooled-real/attempt-001",
+      "status": "completed"
+    }
+  },
+  "completion_sha256": "d75d248774a65255c78b48b4741b4687abb1809318ef69ddc948d1e67c4641ab",
+  "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+  "ended_at": "2026-10-06T20:15:43.623383+00:00",
+  "hard_stop": "2026-10-07T20:00:00+00:00",
+  "schema_version": 1,
+  "status": "complete",
+  "timing_note": {
+    "hard_stop": "2026-10-07T20:00:00+00:00",
+    "interpretation": "Positive-rate proxy only; excludes load, validation, persistence and reserve. Not a measured negative forecast.",
+    "positive_matched_mmlu_seconds": 6172.292994720221
+  }
+}

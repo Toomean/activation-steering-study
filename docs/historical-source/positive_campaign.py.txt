@@ -1,0 +1,728 @@
+"""Fixed 11-development/13-positive-final campaign, with a hard UTC stop.
+
+Preparation code only: a committed, reviewed freeze and persistent record directory
+are required before this CLI can admit scientific work. There is no model-call test
+switch and no deadline override in the CLI or freeze schema.
+"""
+
+import argparse
+from contextlib import contextmanager
+from datetime import datetime, timezone
+import fcntl
+import hashlib
+import importlib
+import importlib.metadata
+import json
+import math
+import os
+from pathlib import Path
+import platform
+import shlex
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+from typing import Any
+
+HARD_STOP = datetime(2026, 10, 7, 20, tzinfo=timezone.utc)
+RESERVED_HOURS = 21.599915278844318
+PROTOCOL_SHA256 = "8719cb23f65e9338acc1235f2ee733e671bbd81e46cb9c8e8aa2269ce6eb5c32"
+PRODUCER_SHA256 = "e8c6c3cdcbcba6ba2e2f0e3fbab44aeb1880a1538a0821067ebdc45bf9d1eb2a"
+FIXED_ENV = {"HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1", "UV_OFFLINE": "1",
+             "UV_NO_SYNC": "1", "OMP_NUM_THREADS": "12", "MKL_NUM_THREADS": "12",
+             "OPENBLAS_NUM_THREADS": "12", "PYTHONDONTWRITEBYTECODE": "1",
+             "PYTHONHASHSEED": "0", "CUDA_VISIBLE_DEVICES": ""}
+ENV_KEYS = set(FIXED_ENV) | {"PATH", "HOME", "LANG", "LC_ALL", "PYTHONPATH", "UV_CACHE_DIR",
+                           "HF_HOME", "HF_HUB_CACHE", "VIRTUAL_ENV", "TORCHINDUCTOR_CACHE_DIR"}
+DATA_PATHS = ("data/harmless/panel.json", "data/refusal/upstream/refusal_direction/harmless_val.json",
+              "data/refusal/upstream/refusal_direction/harmless_test.json",
+              "data/mmlu/upstream/cais/validation-00000-of-00001.parquet",
+              "data/mmlu/upstream/cais/test-00000-of-00001.parquet", "data/mmlu/test-1710.json")
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _git(root: Path, *args: str) -> bytes:
+    return subprocess.check_output(["git", *args], cwd=root, stderr=subprocess.PIPE)
+
+
+def _sha(path: Path) -> str:
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def _read(path: Path) -> Any:
+    def unique(pairs):
+        value = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError("Duplicate JSON key")
+            value[key] = item
+        return value
+    def invalid(value):
+        raise ValueError("Nonfinite JSON number")
+    return json.loads(path.read_bytes(), object_pairs_hook=unique, parse_constant=invalid)
+
+
+def _write(path: Path, value: object) -> None:
+    with tempfile.NamedTemporaryFile("w", dir=path.parent, prefix=f".{path.name}.", delete=False) as stream:
+        temporary = Path(stream.name)
+        try:
+            stream.write(json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+            os.replace(temporary, path)
+            directory = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
+        finally:
+            temporary.unlink(missing_ok=True)
+
+
+# Deliberately copied from the reviewed, immutable 2026-10-03 readiness/launch_control.py.
+# Binary /proc parsing, start ticks, session census, escalation and lifetime locking
+# preserve its ownership model. The only wait extension is the accepted hard UTC stop.
+def _process_details(pid: int) -> dict:
+    fields = Path(f"/proc/{pid}/stat").read_bytes().rsplit(b")", 1)[1].split()
+    return {"state": fields[0].decode("ascii"), "pgid": int(fields[2]), "sid": int(fields[3]),
+            "start_ticks": int(fields[19])}
+
+
+def _session_processes(session_id: int) -> dict:
+    # Parse comm as bytes: even unrelated process names can contain invalid UTF-8.
+    processes = {}
+    for path in Path("/proc").glob("[0-9]*/stat"):
+        try:
+            pid = int(path.parent.name)
+            details = _process_details(pid)
+            if details["sid"] == session_id:
+                processes[pid] = details
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+    return processes
+
+
+def _wait_owned(child: subprocess.Popen, received: list[int], manifest: dict, manifest_path: Path, *,
+                abort: bool = False, cutoff: datetime = HARD_STOP) -> bool:
+    """Bound shutdown of every writable process in the child's isolated Linux session."""
+    execution = manifest.setdefault("execution_processes", {"launcher_pid": os.getpid(), "uv_pid": child.pid,
+                                                            "session_id": child.pid, "owned": {}, "signals_forwarded": []})
+    observed = execution["owned"]
+    forwarded = execution["signals_forwarded"]
+    stage, deadline = -1, None
+    if abort:
+        execution["cleanup_requested"] = True
+    if not abort:
+        _write(manifest_path, manifest)
+    while True:
+        returncode = child.poll()
+        if _now() >= cutoff:
+            execution["hard_stop_reached"] = True
+            if not received:
+                received.append(signal.SIGTERM)
+        census_known = True
+        try:
+            processes = _session_processes(child.pid)
+        except Exception as error:
+            if not abort:
+                raise
+            census_known = False
+            execution.setdefault("census_errors", []).append(f"{type(error).__name__}: {error}")
+            processes = {}
+            # If the full census fails, only revalidated observed identities may be signalled.
+            for pid, recorded in observed.items():
+                try:
+                    details = _process_details(int(pid))
+                    if details["sid"] == child.pid and details["start_ticks"] == recorded["start_ticks"]:
+                        processes[int(pid)] = details
+                except (FileNotFoundError, ProcessLookupError):
+                    continue
+                except OSError as identity_error:
+                    execution.setdefault("identity_errors", {})[pid] = str(identity_error)
+            if returncode is None and child.pid not in processes:
+                try:
+                    details = _process_details(child.pid)
+                    if details["sid"] == child.pid:
+                        processes[child.pid] = details
+                except (FileNotFoundError, ProcessLookupError):
+                    pass
+                except OSError as identity_error:
+                    execution.setdefault("identity_errors", {})[str(child.pid)] = str(identity_error)
+        discovered = set(map(str, processes)) - observed.keys()
+        observed.update({str(pid): details for pid, details in processes.items()})
+        active = {pid: details for pid, details in processes.items() if details["state"] != "Z"}
+        if discovered and not abort:
+            _write(manifest_path, manifest)
+        if returncode is not None and not active and census_known:
+            manifest["execution_processes"]["settled"] = True
+            return True
+        send = False
+        if stage == -1 and (abort or received or returncode is not None):
+            stage = 0
+            send = True
+            forwarded.append(received[0] if received and not abort else signal.SIGTERM)
+            deadline = time.monotonic() + 2.0
+            manifest["execution_processes"]["orphan_after_uv_exit"] = returncode is not None
+        elif deadline is not None and time.monotonic() >= deadline:
+            stage += 1
+            if stage > (1 if abort else 2):
+                manifest["execution_processes"].update(settled=False, still_active=active)
+                return False
+            send = True
+            forwarded.append(signal.SIGKILL if abort or stage == 2 else signal.SIGTERM)
+            deadline = time.monotonic() + 2.0
+        if send:
+            groups = {details["pgid"] for details in active.values()}
+            # An unreaped direct child owns this group ID even when /proc is unreadable.
+            if abort and returncode is None:
+                groups.add(child.pid)
+            for pgid in groups:
+                try:
+                    os.killpg(pgid, forwarded[-1])
+                except ProcessLookupError:
+                    pass
+                except OSError as signal_error:
+                    execution.setdefault("signal_errors", {})[str(pgid)] = str(signal_error)
+        time.sleep(0.05)
+
+
+def _refuse_live_attempt(entry: dict) -> None:
+    """Reconciliation cannot authorize work while a prior writer remains alive."""
+    manifest_path = Path(entry["record_dir"]) / "run-manifest.json"
+    manifest = json.loads(manifest_path.read_bytes()) if manifest_path.exists() else {}
+    execution = manifest.get("execution_processes", {})
+    if execution.get("session_id"):
+        processes = _session_processes(execution["session_id"])
+        for pid, details in processes.items():
+            recorded = execution.get("owned", {}).get(str(pid), {})
+            if details["state"] != "Z" and recorded.get("start_ticks") == details["start_ticks"]:
+                raise ValueError("Live prior attempt blocks a new launch")
+        leader = processes.get(execution["session_id"], {})
+        saved_leader = execution.get("owned", {}).get(str(execution["session_id"]), {})
+        reused_session_id = (saved_leader.get("start_ticks") is not None and leader.get("start_ticks") is not None
+                             and saved_leader["start_ticks"] != leader["start_ticks"])
+        if not reused_session_id and any(details["state"] != "Z" for details in processes.values()):
+            raise ValueError("Live prior session member blocks a new launch")
+    # Missing identities (including death before the first census) need the command marker.
+    marker = os.fsencode(entry["output_dir"])
+    for path in Path("/proc").glob("[0-9]*/cmdline"):
+        try:
+            arguments = path.read_bytes().split(b"\0")
+            if marker in arguments or any(arg.endswith(b"=" + marker) for arg in arguments):
+                raise ValueError("Live prior output writer blocks a new launch")
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+
+
+@contextmanager
+def _records_lock(records_root: Path):
+    records_root.mkdir(parents=True, exist_ok=True)
+    with (records_root / ".launcher.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise ValueError("Live launcher holds the records lock") from error
+        try:
+            yield
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)
+
+
+
+def _validate_environment(environment: dict[str, str], implementation: Path) -> None:
+    if (not isinstance(environment, dict) or not set(environment) <= ENV_KEYS
+            or any(type(value) is not str for value in environment.values())
+            or any(environment.get(key) != value for key, value in FIXED_ENV.items())
+            or environment.get("PYTHONPATH") != str(implementation / "src")):
+        raise ValueError("Declare the restricted execution environment")
+    # Importing the project closure initializes this cache; freeze its location first.
+    cache = environment.get("TORCHINDUCTOR_CACHE_DIR")
+    if not cache or not Path(cache).is_absolute():
+        raise ValueError("Declare an absolute TORCHINDUCTOR_CACHE_DIR before imports")
+    if dict(os.environ) != environment:
+        raise ValueError("Start the parent under exactly the declared restricted environment")
+
+
+def _runtime_identity() -> dict[str, Any]:
+    import torch
+    return {"python": platform.python_version(), "executable": str(Path(sys.executable).resolve()),
+            "versions": {name: importlib.metadata.version(name) for name in ("torch", "transformers", "numpy", "pyarrow")},
+            "torch_threads": torch.get_num_threads(), "torch_interop_threads": torch.get_num_interop_threads()}
+
+
+def _validate_runtime(runtime: dict[str, Any], expected: dict[str, Any]) -> None:
+    # OMP/MKL fix intra-op threads; retain the observed interop count in the freeze.
+    if runtime != expected or runtime["torch_threads"] != 12:
+        raise ValueError("Parent runtime differs from freeze or fixed threading")
+
+
+def _snapshot(path: Path, environment: dict[str, str]) -> dict[str, Any]:
+    descriptor = _read(path)
+    if any(environment.get(key) != value for key, value in descriptor["cache_environment"].items()):
+        raise ValueError("Model cache environment differs")
+    snapshot = Path(descriptor["snapshot_path"])
+    names = [item["name"] for item in descriptor["files"]]
+    if (not names or len(names) != len(set(names))
+            or {item.name for item in snapshot.iterdir()} != set(names)):
+        raise ValueError("Model snapshot membership must be nonempty, unique and exact")
+    for item in descriptor["files"]:
+        local = Path(item["path"])
+        if (local != snapshot / item["name"] or local.resolve() != Path(item["blob_path"]).resolve()
+                or local.stat().st_size != item["size_bytes"] or _sha(local) != item["sha256"]):
+            raise ValueError("Model snapshot bytes differ")
+    return descriptor
+
+
+def _origins(implementation: Path, code_paths: set[Path]) -> dict[str, str]:
+    for path in sorted(code_paths):
+        if path.name.startswith("test_"):
+            continue
+        parts = path.relative_to(implementation / "src").with_suffix("").parts
+        name = ".".join(parts[:-1] if parts[-1] == "__init__" else parts)
+        importlib.import_module(name)
+    origins = {}
+    for name, module in tuple(sys.modules.items()):
+        filename = getattr(module, "__file__", None)
+        if filename and (name == "activation_steering_study" or name.startswith("activation_steering_study.")):
+            origins[name] = str(Path(filename).resolve())
+    if not origins or any(Path(path) not in code_paths for path in origins.values()):
+        raise ValueError("Project imports do not resolve wholly inside the frozen source closure")
+    return origins
+
+
+def _disk(path: Path) -> dict[str, Any]:
+    usage = shutil.disk_usage(path)
+    return {"path": str(path), "device": path.stat().st_dev, "total": usage.total,
+            "used": usage.used, "free": usage.free,
+            "mountinfo": Path("/proc/self/mountinfo").read_text()}
+
+
+def _tracked_inputs(freeze: dict[str, Any], roots: dict[str, Path], commits: dict[str, str]) -> tuple[dict[str, Path], dict[str, str]]:
+    inputs, hashes = {}, {}
+    for name, item in freeze["inputs"].items():
+        root = roots[item["repo"]]
+        relative = Path(item["path"])
+        path = (root / relative).resolve()
+        if relative.is_absolute() or not path.is_relative_to(root):
+            raise ValueError("Frozen path escapes its repository")
+        digest = _sha(path)
+        blob = _git(root, "show", f"{commits[item['repo']]}:{relative}")
+        if digest != item["sha256"] or digest != hashlib.sha256(blob).hexdigest():
+            raise ValueError(f"Frozen bytes differ from the committed blob: {name}")
+        inputs[name], hashes[name] = path, digest
+    return inputs, hashes
+
+
+def preflight(freeze_path: Path) -> dict[str, Any]:
+    """Verify the committed closure, declared runtime and sampler before any model call."""
+    freeze_path = freeze_path.resolve()
+    freeze = _read(freeze_path)
+    fields = {"schema_version", "status", "implementation_root", "implementation_commit", "planning_root",
+              "records_root", "uv", "uv_sha256", "python", "python_sha256", "environment", "runtime",
+              "child_effective_environment", "inputs", "audit_rank_sha256", "residual_overhead_hours", "reserve_description"}
+    if set(freeze) != fields or freeze["schema_version"] != 1 or freeze["status"] != "frozen":
+        raise ValueError("A complete committed freeze v1 is required")
+    roots = {name: Path(freeze[f"{name}_root"]).resolve() for name in ("implementation", "planning")}
+    if roots["implementation"] == roots["planning"] or Path.cwd().resolve() != roots["implementation"]:
+        raise ValueError("Run from the separate frozen implementation checkout")
+    commits = {}
+    for name, root in roots.items():
+        if _git(root, "status", "--porcelain", "--untracked-files=all").strip():
+            raise ValueError("Execution repositories must be clean")
+        commits[name] = _git(root, "rev-parse", "HEAD").decode().strip()
+    if commits["implementation"] != freeze["implementation_commit"]:
+        raise ValueError("Implementation commit differs")
+    if not freeze_path.is_relative_to(roots["planning"]):
+        raise ValueError("Freeze must be committed in the planning repository")
+    blob = _git(roots["planning"], "show", f"HEAD:{freeze_path.relative_to(roots['planning'])}")
+    if hashlib.sha256(blob).hexdigest() != _sha(freeze_path):
+        raise ValueError("Freeze bytes differ from their committed blob")
+    implementation = roots["implementation"]
+    tracked = {value.decode() for value in _git(implementation, "ls-tree", "-r", "--name-only", "-z", "HEAD", "src").split(b"\0") if value}
+    source = {path for path in tracked if path.endswith(".py")}
+    actual = {str(path.relative_to(implementation)) for path in (implementation / "src").rglob("*.py")}
+    if actual != source or any((implementation / "src").rglob("*.pyc")):
+        raise ValueError("Untracked source or bytecode outside the frozen closure")
+    required = {"launcher", "protocol", "tensor", "reference", "producer", "model_snapshot", "audit_rank", "audit_validation", "uv_lock", "pyproject"}
+    required.update(f"code:{path}" for path in source)
+    required.update(f"data:{path}" for path in DATA_PATHS)
+    if set(freeze["inputs"]) != required:
+        raise ValueError("Freeze must name every source and required data/provenance input")
+    inputs, hashes = _tracked_inputs(freeze, roots, commits)
+    for name in required:
+        if name.startswith(("code:", "data:")):
+            path = name.split(":", 1)[1]
+            if freeze["inputs"][name]["repo"] != "implementation" or inputs[name] != implementation / path:
+                raise ValueError("Implementation input key/path differs")
+    if (inputs["launcher"] != Path(__file__).resolve() or inputs["uv_lock"] != implementation / "uv.lock"
+            or inputs["pyproject"] != implementation / "pyproject.toml"
+            or hashes["protocol"] != PROTOCOL_SHA256 or hashes["producer"] != PRODUCER_SHA256):
+        raise ValueError("Launcher, project, accepted protocol or producer identity differs")
+    environment = freeze["environment"]
+    _validate_environment(environment, implementation)
+    uv, python = Path(freeze["uv"]), Path(freeze["python"])
+    if (not uv.is_absolute() or not python.is_absolute() or not os.access(uv, os.X_OK)
+            or _sha(uv) != freeze["uv_sha256"] or _sha(python) != freeze["python_sha256"]
+            or python.resolve() != Path(sys.executable).resolve()):
+        raise ValueError("Absolute uv/Python executable identity differs")
+    runtime = _runtime_identity()
+    _validate_runtime(runtime, freeze["runtime"])
+    origins = _origins(implementation, {inputs[f"code:{path}"] for path in source})
+    from activation_steering_study.analysis.harmless_audit import json_digest, validate_rank
+    from activation_steering_study.steering.harmless_execution import (
+        TARGETS, capture_inputs, development_specs, final_specs, prepare_direction,
+    )
+    from activation_steering_study.utils.qwen import MODEL_ID, MODEL_REVISION
+    rank = _read(inputs["audit_rank"])
+    validate_rank(rank, freeze["audit_rank_sha256"])
+    validation = _read(inputs["audit_validation"])
+    if validation != {"status": "passed", "sampler_sha256": hashes["code:src/activation_steering_study/analysis/harmless_audit.py"],
+                       "rank_sha256": json_digest(rank), "cases": ["baseline_random", "short_random", "late_match", "refill", "full_panels"]}:
+        raise ValueError("Pre-final sampler validation evidence differs")
+    capture = {role: capture_inputs(role, inputs["tensor"], inputs["reference"]) for role in ("development", "final")}
+    for captured in capture.values():
+        if any(path not in {str(value) for value in inputs.values()} for path in captured):
+            raise ValueError("Worker input outside frozen closure")
+    directions = {}
+    for spec in (*development_specs(), *final_specs(dict.fromkeys(TARGETS, 1.0))):
+        _, directions[spec.condition_id] = prepare_direction(spec, inputs["tensor"], inputs["reference"])
+    for target in TARGETS:
+        vectors = [directions[f"final-{target}-{control}"]["vector_sha256"] for control in ("real", "random42", "random43")]
+        if len(set(vectors)) != 3:
+            raise ValueError("Duplicate actual real/random orientations")
+    snapshot = _snapshot(inputs["model_snapshot"], environment)
+    cache = Path(environment["HF_HUB_CACHE"]).resolve()
+    expected_snapshot = cache / ("models--" + MODEL_ID.replace("/", "--")) / "snapshots" / MODEL_REVISION
+    if (snapshot["model_id"] != MODEL_ID or snapshot["model_revision"] != MODEL_REVISION
+            or Path(snapshot["snapshot_path"]).resolve() != expected_snapshot.resolve()):
+        raise ValueError("Actual model snapshot does not match the worker/cache resolution")
+    python_command = [str(uv), "run", "--locked", "--no-sync", "--offline", "--python", str(python), "python"]
+    probe = ("import json,os,platform,sys,torch,importlib,importlib.metadata; from pathlib import Path; "
+             f"[importlib.import_module(n) for n in {list(origins)!r}]; "
+             "print(json.dumps({'environment':dict(os.environ),'origins':"
+             "{n:str(Path(m.__file__).resolve()) for n,m in tuple(sys.modules.items()) "
+             "if (n=='activation_steering_study' or n.startswith('activation_steering_study.')) and getattr(m,'__file__',None)},"
+             "'runtime':{'python':platform.python_version(),"
+             "'executable':str(Path(sys.executable).resolve()),'versions':{n:importlib.metadata.version(n) "
+             "for n in ('torch','transformers','numpy','pyarrow')},'torch_threads':torch.get_num_threads(),"
+             "'torch_interop_threads':torch.get_num_interop_threads()}}))")
+    child = json.loads(subprocess.check_output([*python_command, "-c", probe], cwd=implementation, env=environment, timeout=30))
+    if child != {"environment": freeze["child_effective_environment"], "runtime": runtime, "origins": origins}:
+        raise ValueError("Effective uv child runtime/environment/origins differs")
+    records = Path(freeze["records_root"])
+    if (not records.is_absolute() or records.resolve() != records
+            or any(records.is_relative_to(root) for root in (*roots.values(), Path("/tmp"), Path("/var/tmp")))
+            or not records.is_dir()):
+        raise ValueError("Use the approved existing persistent records root outside repos and temporary storage")
+    overhead = freeze["residual_overhead_hours"]
+    if type(overhead) not in (int, float) or not math.isfinite(overhead) or overhead < 0 or not freeze["reserve_description"].strip():
+        raise ValueError("Declare finite residual overhead and reserve coverage")
+    configuration = json_digest({"freeze_sha256": _sha(freeze_path), "commits": commits, "environment": environment})
+    return {"freeze": freeze, "freeze_path": freeze_path, "freeze_sha256": _sha(freeze_path), "roots": roots, "commits": commits, "inputs": inputs,
+            "hashes": hashes, "snapshot": snapshot, "origins": origins, "runtime": runtime, "directions": directions,
+            "configuration_sha256": configuration, "python_command": python_command, "records_root": records}
+
+
+def _unchanged(context: dict[str, Any]) -> dict[str, Any]:
+    inputs, hashes = _tracked_inputs(context["freeze"], context["roots"], context["commits"])
+    if hashes != context["hashes"] or _sha(context["freeze_path"]) != context["freeze_sha256"]:
+        raise ValueError("Campaign freeze/input drift")
+    for name, root in context["roots"].items():
+        if (_git(root, "rev-parse", "HEAD").decode().strip() != context["commits"][name]
+                or _git(root, "status", "--porcelain", "--untracked-files=all").strip()):
+            raise ValueError("Campaign commit/tree changed")
+    if (_sha(Path(context["freeze"]["uv"])) != context["freeze"]["uv_sha256"]
+            or _sha(Path(context["freeze"]["python"])) != context["freeze"]["python_sha256"]):
+        raise ValueError("Campaign executables changed")
+    if (_snapshot(inputs["model_snapshot"], context["freeze"]["environment"]) != context["snapshot"]
+            or _runtime_identity() != context["runtime"]
+            or dict(os.environ) != context["freeze"]["environment"]):
+        raise ValueError("Campaign model/runtime/environment drift")
+    return hashes
+
+
+def supervise(argv: list[str], cwd: Path, environment: dict[str, str], manifest: dict[str, Any],
+              manifest_path: Path, *, cutoff: datetime = HARD_STOP) -> tuple[int, bool]:
+    """Own one Linux session through settlement, including supervisor-error cleanup.
+
+    cutoff injection is a direct-call test seam; production always uses HARD_STOP.
+    No freeze field or CLI argument can change it.
+    """
+    received: list[int] = []
+    handlers = {sig: signal.signal(sig, lambda number, _frame: received.append(number))
+                for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP, signal.SIGQUIT)}
+    child = None
+    settled = False
+    returncode = 1
+    try:
+        if _now() >= cutoff:
+            manifest["execution_processes"] = {"hard_stop_reached": True}
+            settled = True
+            return 1, True
+        with (manifest_path.parent / "stdout.log").open("x") as log:
+            child = subprocess.Popen(argv, cwd=cwd, env=environment, stdout=log, stderr=subprocess.STDOUT,
+                                     start_new_session=True)
+            settled = _wait_owned(child, received, manifest, manifest_path, cutoff=cutoff)
+            returncode = child.returncode if settled and child.returncode is not None else 1
+    except BaseException as error:
+        manifest["supervisor_failure"] = type(error).__name__
+        try:
+            settled = child is None or _wait_owned(child, received, manifest, manifest_path, abort=True, cutoff=cutoff)
+        except BaseException as cleanup_error:
+            manifest["cleanup_error"] = type(cleanup_error).__name__
+            settled = False
+    finally:
+        manifest["signals_received"] = received.copy()
+        manifest["returncode"] = returncode
+        manifest["settled"] = settled
+        try:
+            _write(manifest_path, manifest)
+        finally:
+            for sig, handler in handlers.items():
+                signal.signal(sig, handler)
+    return returncode, settled
+
+def _completed(context: dict[str, Any], entry: dict[str, Any], spec) -> Any:
+    from activation_steering_study.steering.harmless_execution import validate_completed_artifact
+    record_dir = context["records_root"] / spec.condition_id / f"attempt-{entry['attempt']:03d}"
+    path = record_dir / "output" / "completed.json"
+    manifest = _read(record_dir / "run-manifest.json")
+    if (entry["record_dir"] != str(record_dir) or entry["output_dir"] != str(path.parent)
+            or entry["status"] != "completed" or manifest["status"] != "completed"
+            or entry["configuration_sha256"] != context["configuration_sha256"]
+            or manifest["configuration_sha256"] != context["configuration_sha256"]
+            or entry["completed"] != {"path": str(path), "sha256": _sha(path)}
+            or manifest["completed"] != entry["completed"] or not manifest["settled"]):
+        raise ValueError("Completed attempt does not match its sealed provenance")
+    return validate_completed_artifact(path, spec, tensor_path=context["inputs"]["tensor"],
+                                       reference_path=context["inputs"]["reference"])
+
+
+def _seal_population(ledger: dict[str, Any], records: Path, status: str) -> None:
+    from activation_steering_study.analysis.harmless_audit import json_digest
+    from activation_steering_study.steering.harmless_execution import publish_json
+    if status not in ("positive_complete", "hard_stopped"):
+        raise ValueError("Population may seal only at positive end or hard stop")
+    seal = {"schema_version": 1, "configuration_sha256": ledger["configuration_sha256"],
+            "reason": status, "completed": {key: entries[-1]["completed"] for key, entries in ledger["attempts"].items()
+                                             if key.startswith("final-") and entries and entries[-1]["status"] == "completed"}}
+    publish_json(records / "population.json", seal)
+    ledger.update(status=status, population_sha256=json_digest(seal), ended_at=_now().isoformat())
+    _write(records / "ledger.json", ledger)
+
+
+def _admit(context: dict[str, Any]) -> dict[str, Any]:
+    remaining = (HARD_STOP - _now()).total_seconds() / 3600
+    overhead = context["freeze"]["residual_overhead_hours"]
+    if remaining < RESERVED_HOURS + overhead:
+        raise ValueError("Reserved LONG scenario plus declared residual overhead no longer fits")
+    return {"admitted_at": _now().isoformat(), "hard_stop": HARD_STOP.isoformat(), "remaining_hours": remaining,
+            "reserved_hours": RESERVED_HOURS, "residual_overhead_hours": overhead,
+            "reserve_description": context["freeze"]["reserve_description"],
+            "interpretation": "Finite LONG scenario for 11 dev plus four pooled final conditions; not a runtime bound",
+            "full_core_target": "11 development plus 13 final; medium scenario 37.945115 hours"}
+
+
+def _run_locked(context: dict[str, Any], retry_reason: str | None) -> int:
+    from activation_steering_study.analysis.harmless_audit import json_digest
+    from activation_steering_study.steering.harmless_execution import (
+        development_specs, final_specs, prepare_direction, publish_json, select_domain_doses,
+    )
+    records = context["records_root"]
+    ledger_path = records / "ledger.json"
+    if ledger_path.exists():
+        ledger = _read(ledger_path)
+        if ledger["configuration_sha256"] != context["configuration_sha256"]:
+            raise ValueError("Resume must retain the exact freeze, commits and environment")
+    else:
+        if any(path.name != ".launcher.lock" for path in records.iterdir()):
+            raise ValueError("Unledgered files require recovery; never start another campaign over them")
+        ledger = {"schema_version": 1, "status": "active", "configuration_sha256": context["configuration_sha256"],
+                  "freeze_sha256": context["freeze_sha256"], "commits": context["commits"],
+                  "audit_rank_sha256": context["freeze"]["audit_rank_sha256"], "attempts": {},
+                  "retry_used": False, "dose_freeze": None, "admission": _admit(context)}
+        _write(ledger_path, ledger)
+    for entries in ledger["attempts"].values():
+        for entry in entries:
+            _refuse_live_attempt(entry)
+            if entry["status"] in ("running", "unresolved"):
+                raise ValueError("Prior ambiguous attempt needs explicit recovery; no automatic reconciliation")
+            if entry["status"] != "completed" and (Path(entry["output_dir"]) / "completed.json").exists():
+                raise ValueError("Already-published output after failure needs recovery, never rerun")
+    known = {spec.condition_id: spec for spec in development_specs()}
+    if ledger["dose_freeze"] is not None:
+        known.update({spec.condition_id: spec for spec in final_specs(ledger["dose_freeze"]["doses"])})
+    if not set(ledger["attempts"]) <= set(known):
+        raise ValueError("Ledger contains an unknown or premature condition")
+    attempted = list(known)[:len(ledger["attempts"])]
+    if set(ledger["attempts"]) != set(attempted):
+        raise ValueError("Ledger departed from the fixed condition order")
+    verified = {}
+    for position, condition_id in enumerate(attempted):
+        entries = ledger["attempts"][condition_id]
+        if not entries or len(entries) > 2 or [entry["attempt"] for entry in entries] != list(range(1, len(entries) + 1)):
+            raise ValueError("Invalid attempt numbering")
+        if len(entries) == 2 and entries[0]["status"] != "failed":
+            raise ValueError("Only failed attempts can have a documented retry")
+        if position < len(attempted) - 1 and entries[-1]["status"] != "completed":
+            raise ValueError("A failed condition was skipped")
+        if entries[-1]["status"] == "completed":
+            verified[condition_id] = _completed(context, entries[-1], known[condition_id])
+    if ledger["dose_freeze"] is not None:
+        expected_dev = [spec.condition_id for spec in development_specs()]
+        if not set(expected_dev) <= set(verified):
+            raise ValueError("Dose freeze lacks all verified development conditions")
+        frozen = ledger["dose_freeze"]
+        if (frozen["doses"] != select_domain_doses([verified[key] for key in expected_dev])
+                or frozen["configuration_sha256"] != context["configuration_sha256"]
+                or frozen["development"] != {key: ledger["attempts"][key][-1]["completed"]["sha256"] for key in expected_dev}
+                or _read(records / "dose-freeze.json") != frozen
+                or ledger["dose_freeze_sha256"] != json_digest(frozen)):
+            raise ValueError("Dose freeze differs from verified development evidence")
+    retries = sum(len(entries) - 1 for entries in ledger["attempts"].values())
+    if retries > 1 or bool(retries) != ledger["retry_used"]:
+        raise ValueError("Campaign retry allowance differs")
+    if ledger["status"] in ("positive_complete", "hard_stopped"):
+        seal = _read(records / "population.json")
+        expected = {key: entries[-1]["completed"] for key, entries in ledger["attempts"].items()
+                    if key.startswith("final-") and entries[-1]["status"] == "completed"}
+        if (seal["completed"] != expected or seal["reason"] != ledger["status"]
+                or ledger["population_sha256"] != json_digest(seal)
+                or (ledger["status"] == "positive_complete" and len(expected) != 13)):
+            raise ValueError("Terminal population seal differs")
+        return 0 if ledger["status"] == "positive_complete" else 3
+    dev_artifacts = []
+    queue = list(development_specs())
+    index = 0
+    while index < len(queue):
+        spec = queue[index]
+        entries = ledger["attempts"].get(spec.condition_id, [])
+        if entries and entries[-1]["status"] == "completed":
+            artifact = verified[spec.condition_id]
+        else:
+            if _now() >= HARD_STOP:
+                _seal_population(ledger, records, "hard_stopped")
+                return 3
+            if entries:
+                previous = entries[-1]
+                manifest = _read(Path(previous["record_dir"]) / "run-manifest.json")
+                if (previous["status"] != "failed" or manifest["status"] != "failed"
+                        or previous["configuration_sha256"] != context["configuration_sha256"]
+                        or manifest["configuration_sha256"] != context["configuration_sha256"]
+                        or not manifest["settled"] or ledger["retry_used"] or not retry_reason or not retry_reason.strip()):
+                    raise ValueError("Only one explicitly documented, settled whole-condition retry is permitted")
+                ledger["retry_used"] = True
+            before = _unchanged(context)
+            if _now() >= HARD_STOP:
+                _seal_population(ledger, records, "hard_stopped")
+                return 3
+            attempt = len(entries) + 1
+            record_dir = records / spec.condition_id / f"attempt-{attempt:03d}"
+            record_dir.mkdir(parents=True, exist_ok=False)
+            output = record_dir / "output"
+            argv = [*context["python_command"], "-u", "-m", "activation_steering_study.steering.harmless_execution",
+                    "--role", spec.role, "--control", spec.control, "--alpha", str(spec.alpha),
+                    "--tensor", str(context["inputs"]["tensor"]), "--reference", str(context["inputs"]["reference"]),
+                    "--attempt-dir", str(output)]
+            if spec.target is not None:
+                argv += ["--target", spec.target]
+            _, direction = prepare_direction(spec, context["inputs"]["tensor"], context["inputs"]["reference"])
+            entry = {"attempt": attempt, "status": "running", "record_dir": str(record_dir), "output_dir": str(output),
+                     "configuration_sha256": context["configuration_sha256"], "retry_reason": retry_reason if entries else None}
+            ledger["attempts"].setdefault(spec.condition_id, []).append(entry)
+            manifest = {**entry, "condition": spec.to_dict(), "argv": argv, "command": shlex.join(argv),
+                        "cwd": str(context["roots"]["implementation"]), "commits": context["commits"],
+                        "environment": context["freeze"]["environment"],
+                        "child_effective_environment": context["freeze"]["child_effective_environment"],
+                        "runtime": context["runtime"], "direction": direction, "import_origins": context["origins"],
+                        "model_snapshot_before": context["snapshot"], "inputs_before": before,
+                        "disk_before": _disk(records), "started_at": _now().isoformat()}
+            manifest_path = record_dir / "run-manifest.json"
+            _write(manifest_path, manifest)
+            _write(ledger_path, ledger)
+            tick = time.monotonic()
+            returncode, settled = supervise(argv, context["roots"]["implementation"], context["freeze"]["environment"], manifest, manifest_path)
+            uncertain = bool(manifest["signals_received"] or manifest.get("supervisor_failure")
+                             or manifest.get("execution_processes", {}).get("orphan_after_uv_exit")) or not settled
+            stopped = manifest.get("execution_processes", {}).get("hard_stop_reached", False) or _now() >= HARD_STOP
+            manifest.update(ended_at=_now().isoformat(), elapsed_seconds=time.monotonic() - tick,
+                            disk_after=_disk(records), output_hashes_final=settled)
+            entry["status"] = "unresolved" if uncertain else "failed"
+            if stopped and settled:
+                entry["status"] = "incomplete"
+            if settled:
+                manifest["output_sha256"] = {str(path.relative_to(output)): _sha(path) for path in output.rglob("*") if path.is_file()}
+                try:
+                    manifest["inputs_after"] = _unchanged(context)
+                    manifest["model_snapshot_after"] = _snapshot(context["inputs"]["model_snapshot"], context["freeze"]["environment"])
+                    if returncode == 0 and not uncertain and not stopped:
+                        from activation_steering_study.steering.harmless_execution import validate_completed_artifact
+                        artifact = validate_completed_artifact(output / "completed.json", spec,
+                                    tensor_path=context["inputs"]["tensor"], reference_path=context["inputs"]["reference"])
+                        entry.update(status="completed", completed={"path": str(output / "completed.json"), "sha256": _sha(output / "completed.json")})
+                        manifest["completed"] = entry["completed"]
+                except Exception as error:
+                    entry["status"] = "unresolved"
+                    manifest["validation_error"] = type(error).__name__
+            manifest["status"] = entry["status"]
+            _write(manifest_path, manifest)
+            _write(ledger_path, ledger)
+            if stopped and settled and entry["status"] != "unresolved":
+                _seal_population(ledger, records, "hard_stopped")
+                return 3
+            if entry["status"] != "completed":
+                return 4 if entry["status"] == "unresolved" else 2
+        if spec.role == "development":
+            dev_artifacts.append(artifact)
+        index += 1
+        if index == 11:
+            doses = select_domain_doses(dev_artifacts)
+            dose_freeze = {"configuration_sha256": context["configuration_sha256"], "doses": doses,
+                           "development": {item.condition_id: ledger["attempts"][item.condition_id][-1]["completed"]["sha256"]
+                                           for item in development_specs()},
+                           "selection": "Exact singleton-group refusal count distance from pooled +1; ties use lower dose"}
+            if ledger["dose_freeze"] is None:
+                publish_json(records / "dose-freeze.json", dose_freeze)
+                ledger["dose_freeze"] = dose_freeze
+                ledger["dose_freeze_sha256"] = json_digest(dose_freeze)
+                _write(ledger_path, ledger)
+            elif (ledger["dose_freeze"] != dose_freeze or _read(records / "dose-freeze.json") != dose_freeze
+                  or ledger["dose_freeze_sha256"] != json_digest(dose_freeze)):
+                raise ValueError("Frozen doses differ from verified development evidence")
+            queue.extend(final_specs(doses))
+    _seal_population(ledger, records, "positive_complete")
+    return 0
+
+
+def run_campaign(freeze_path: Path, records_root: Path, *, retry_reason: str | None = None) -> int:
+    """Resume exact completed conditions; any failure stops the fixed queue immediately."""
+    context = preflight(freeze_path)
+    if records_root.resolve() != context["records_root"]:
+        raise ValueError("Records root differs from committed freeze")
+    context["freeze_sha256"] = _sha(context["freeze_path"])
+    with _records_lock(context["records_root"]):
+        _unchanged(context)
+        return _run_locked(context, retry_reason)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--freeze", required=True, type=Path)
+    parser.add_argument("--records-root", required=True, type=Path)
+    parser.add_argument("--retry-reason")
+    args = parser.parse_args()
+    try:
+        code = run_campaign(args.freeze, args.records_root, retry_reason=args.retry_reason)
+    except Exception as error:
+        raise SystemExit(f"Campaign blocked ({type(error).__name__}); inspect retained records") from None
+    raise SystemExit(code)
+
+
+if __name__ == "__main__":
+    main()

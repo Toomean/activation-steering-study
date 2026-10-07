@@ -48,8 +48,10 @@ retains row IDs, group and quality membership, all frozen phrase matches, token
 counts, quality diagnostics, MMLU scores and stage timings. Phrase offsets refer
 to the case-lowered decoded completion used by the frozen heuristic.
 
-The next integration boundary must bind a frozen development selection to final
-execution, capture source/tensor/code/environment/model provenance, and persist
-results without overwriting prior artifacts. No experimental launcher or final
-selection procedure is implemented here. Data loading and synthetic kernel tests
-do not establish whole-experiment readiness.
+The completed positive campaign bound development selection to final execution,
+recorded code/tensor/runtime/model provenance and wrote each condition once.
+`steering/harmless_execution.py` is the historical strict worker;
+`scripts/run_condition.py` provides a separately labelled portable rerun and
+no-model validation command. Eleven development and 13 final conditions completed
+on first attempts. Public run projections and accepted aggregate analyses are in
+`results/`; raw generations and individual audit labels are not part of this release.

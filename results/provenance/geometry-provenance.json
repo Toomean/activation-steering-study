@@ -1,0 +1,48 @@
+{
+  "path": "historical/implementation/artifacts/refusal-domains.json",
+  "byte_sha256": "e8c6c3cdcbcba6ba2e2f0e3fbab44aeb1880a1538a0821067ebdc45bf9d1eb2a",
+  "status": "historical numeric archive transcription checked; exact historical source replay pending",
+  "historical_cohort": "Three provisional harmful domains, 24 extraction rows each, common 32-row reviewed harmless extraction sample; separate pooled direction used 28 reviewed harmful rows.",
+  "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+  "model_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+  "model_dtype": "torch.bfloat16",
+  "layer_index": 14,
+  "block_number_one_based": 15,
+  "capture": "FP32 block output at final rendered prompt token",
+  "formula": "mean harmful - same 32-row reviewed harmless mean",
+  "centering": "Each of the three domain directions minus their unweighted shared mean. The pooled direction is excluded. The three residuals sum to zero.",
+  "centering_evidence": "Archive geometry.centered_object and three named matrix rows; later mapped geometry.py:65-66,136-154 corroborate this meaning but fail the historical hash match.",
+  "cosine_units": "Dimensionless cosine similarity.",
+  "split_half_meaning": "Within-domain cosine between two disjoint half-sample directions; archived half sizes are 12 harmful and 16 harmless, with the harmless partition shared across domains. Centered values compare centered half-directions.",
+  "percentile_meaning": "Median and 5th/95th percentiles over 100 recorded random partitions, NumPy default_rng seed42. Descriptive partition summaries, not confidence intervals or p-values.",
+  "interpretive_limit": "Negative centered cosines partly reflect the zero-sum centering constraint. These summaries do not establish distinct refusal mechanisms or functional specificity.",
+  "raw_matrix_undefined_count": 0,
+  "centered_matrix_undefined_count": 0,
+  "missing_evidence": [
+    "Exact byte-matched historical geometry.py and refusal_domain.py sources not recovered in this bounded pass.",
+    "Archive lacks split_halves.cross_domain_raw, present only in the later mapped implementation.",
+    "Individual split-half draws and vectors are not exported or replayed; percentile arithmetic is not independently recomputed."
+  ],
+  "source_mapping": [
+    {
+      "path": "historical/positive-protocol/assessments/a3/iterations/iteration-04-control-2026-10-03/readiness/reextraction/source/activation_steering_study/analysis/geometry.py",
+      "recorded_historical_byte_sha256": "f53d43d18a9f56cd2a4800687ce330c6f3f10a597a63c0a2f1396876ed5e3520",
+      "observed_mapped_byte_sha256": "9727dc62bafea73c3671910307dbe8d6aac6b1a1816f20cac93354ad790bd680",
+      "exact_historical_source_match": false
+    },
+    {
+      "path": "historical/positive-protocol/assessments/a3/iterations/iteration-04-control-2026-10-03/readiness/reextraction/source/activation_steering_study/steering/refusal_domain.py",
+      "recorded_historical_byte_sha256": "5a0cf9215610ad925da336a32485f0e5b5f8aec3b6794f787a8f4ae4621b650d",
+      "observed_mapped_byte_sha256": "4f8dd056975198385b2af59a019eac1b54247ec8d280b69a9cbf62b84b65201b",
+      "exact_historical_source_match": false
+    }
+  ],
+  "tensor_recorded_sha256": "28150fee085e3e0b0f2aa0422d8a414a654251be593a61e26b359010855893da",
+  "tensor_loaded": false,
+  "historical_source_hashes": {
+    "data/refusal/domain-splits.json": "a0e37795b757b52d2e49669b9b3c26798676645da89cfd096bc7cbb7ff7da69d",
+    "data/refusal/domain-labels.json": "9053cd6ee2b485fb0ada2fc8fb54344209663becd3615ed75fa817804dfaf29b",
+    "data/refusal/upstream/refusal_direction/harmful_train.json": "8f5c0eac0efd2a7f99084bbe8d0de2c465e31b1997184783c917969d9de9ece1",
+    "data/review/prompts_checked.json": "0349c0d980a7ad8539160d384102c982158524c034cb6709287bf7b8d265a496"
+  }
+}

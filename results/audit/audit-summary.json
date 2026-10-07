@@ -1,0 +1,571 @@
+{
+  "layers": {
+    "original_human": {
+      "groups": {
+        "real": {
+          "n": 16,
+          "known_agreement": 16,
+          "unclear": 0,
+          "known_disagreement": 0,
+          "proxy_positive": 5,
+          "proxy_negative": 11,
+          "refusal": {
+            "full": 3,
+            "mixed": 2,
+            "none": 11,
+            "unclear": 0
+          },
+          "quality": {
+            "refusal": {
+              "full": 3,
+              "mixed": 2,
+              "none": 11,
+              "unclear": 0
+            },
+            "coherence": {
+              "yes": 10,
+              "no": 0,
+              "unclear": 6
+            },
+            "relevance": {
+              "yes": 10,
+              "no": 0,
+              "unclear": 6
+            },
+            "task_completion": {
+              "complete": 7,
+              "partial": 4,
+              "no attempt": 0,
+              "unclear": 5
+            }
+          },
+          "proxy_by_rubric_refusal": {
+            "false": {
+              "full": 0,
+              "mixed": 0,
+              "none": 11,
+              "unclear": 0
+            },
+            "true": {
+              "full": 3,
+              "mixed": 2,
+              "none": 0,
+              "unclear": 0
+            }
+          },
+          "agreement_range": [
+            1.0,
+            1.0
+          ],
+          "refusal_range": [
+            0.3125,
+            0.3125
+          ],
+          "unavailable_reason": null
+        },
+        "baseline_random": {
+          "n": 16,
+          "known_agreement": 14,
+          "unclear": 0,
+          "known_disagreement": 2,
+          "proxy_positive": 2,
+          "proxy_negative": 14,
+          "refusal": {
+            "full": 0,
+            "mixed": 0,
+            "none": 16,
+            "unclear": 0
+          },
+          "quality": {
+            "refusal": {
+              "full": 0,
+              "mixed": 0,
+              "none": 16,
+              "unclear": 0
+            },
+            "coherence": {
+              "yes": 16,
+              "no": 0,
+              "unclear": 0
+            },
+            "relevance": {
+              "yes": 16,
+              "no": 0,
+              "unclear": 0
+            },
+            "task_completion": {
+              "complete": 12,
+              "partial": 1,
+              "no attempt": 0,
+              "unclear": 3
+            }
+          },
+          "proxy_by_rubric_refusal": {
+            "false": {
+              "full": 0,
+              "mixed": 0,
+              "none": 14,
+              "unclear": 0
+            },
+            "true": {
+              "full": 0,
+              "mixed": 0,
+              "none": 2,
+              "unclear": 0
+            }
+          },
+          "agreement_range": [
+            0.875,
+            0.875
+          ],
+          "refusal_range": [
+            0.0,
+            0.0
+          ],
+          "unavailable_reason": null
+        },
+        "targeted": {
+          "n": 24,
+          "known_agreement": 21,
+          "unclear": 0,
+          "known_disagreement": 3,
+          "proxy_positive": 7,
+          "proxy_negative": 17,
+          "refusal": {
+            "full": 1,
+            "mixed": 3,
+            "none": 20,
+            "unclear": 0
+          },
+          "quality": {
+            "refusal": {
+              "full": 1,
+              "mixed": 3,
+              "none": 20,
+              "unclear": 0
+            },
+            "coherence": {
+              "yes": 22,
+              "no": 0,
+              "unclear": 2
+            },
+            "relevance": {
+              "yes": 22,
+              "no": 0,
+              "unclear": 2
+            },
+            "task_completion": {
+              "complete": 17,
+              "partial": 3,
+              "no attempt": 0,
+              "unclear": 4
+            }
+          },
+          "proxy_by_rubric_refusal": {
+            "false": {
+              "full": 0,
+              "mixed": 0,
+              "none": 17,
+              "unclear": 0
+            },
+            "true": {
+              "full": 1,
+              "mixed": 3,
+              "none": 3,
+              "unclear": 0
+            }
+          },
+          "agreement_range": [
+            0.875,
+            0.875
+          ],
+          "refusal_range": [
+            0.16666666666666666,
+            0.16666666666666666
+          ],
+          "unavailable_reason": null
+        }
+      },
+      "combined_probability": {
+        "available": true,
+        "weights": {
+          "real": 0.3076923076923077,
+          "baseline_random": 0.6923076923076923
+        },
+        "population_units": 3198,
+        "agreement_range": [
+          0.9134615384615384,
+          0.9134615384615384
+        ],
+        "refusal_range": [
+          0.09615384615384616,
+          0.09615384615384616
+        ]
+      }
+    },
+    "owner_adjudicated": {
+      "groups": {
+        "real": {
+          "n": 16,
+          "known_agreement": 15,
+          "unclear": 1,
+          "known_disagreement": 0,
+          "proxy_positive": 5,
+          "proxy_negative": 11,
+          "refusal": {
+            "full": 4,
+            "mixed": 1,
+            "none": 10,
+            "unclear": 1
+          },
+          "quality": {
+            "refusal": {
+              "full": 4,
+              "mixed": 1,
+              "none": 10,
+              "unclear": 1
+            },
+            "coherence": {
+              "yes": 13,
+              "no": 1,
+              "unclear": 2
+            },
+            "relevance": {
+              "yes": 12,
+              "no": 2,
+              "unclear": 2
+            },
+            "task_completion": {
+              "complete": 4,
+              "partial": 5,
+              "no attempt": 5,
+              "unclear": 2
+            }
+          },
+          "proxy_by_rubric_refusal": {
+            "false": {
+              "full": 0,
+              "mixed": 0,
+              "none": 10,
+              "unclear": 1
+            },
+            "true": {
+              "full": 4,
+              "mixed": 1,
+              "none": 0,
+              "unclear": 0
+            }
+          },
+          "agreement_range": [
+            0.9375,
+            1.0
+          ],
+          "refusal_range": [
+            0.3125,
+            0.375
+          ],
+          "unavailable_reason": null
+        },
+        "baseline_random": {
+          "n": 16,
+          "known_agreement": 15,
+          "unclear": 0,
+          "known_disagreement": 1,
+          "proxy_positive": 2,
+          "proxy_negative": 14,
+          "refusal": {
+            "full": 0,
+            "mixed": 1,
+            "none": 15,
+            "unclear": 0
+          },
+          "quality": {
+            "refusal": {
+              "full": 0,
+              "mixed": 1,
+              "none": 15,
+              "unclear": 0
+            },
+            "coherence": {
+              "yes": 16,
+              "no": 0,
+              "unclear": 0
+            },
+            "relevance": {
+              "yes": 16,
+              "no": 0,
+              "unclear": 0
+            },
+            "task_completion": {
+              "complete": 9,
+              "partial": 7,
+              "no attempt": 0,
+              "unclear": 0
+            }
+          },
+          "proxy_by_rubric_refusal": {
+            "false": {
+              "full": 0,
+              "mixed": 0,
+              "none": 14,
+              "unclear": 0
+            },
+            "true": {
+              "full": 0,
+              "mixed": 1,
+              "none": 1,
+              "unclear": 0
+            }
+          },
+          "agreement_range": [
+            0.9375,
+            0.9375
+          ],
+          "refusal_range": [
+            0.0625,
+            0.0625
+          ],
+          "unavailable_reason": null
+        },
+        "targeted": {
+          "n": 24,
+          "known_agreement": 20,
+          "unclear": 2,
+          "known_disagreement": 2,
+          "proxy_positive": 7,
+          "proxy_negative": 17,
+          "refusal": {
+            "full": 1,
+            "mixed": 2,
+            "none": 19,
+            "unclear": 2
+          },
+          "quality": {
+            "refusal": {
+              "full": 1,
+              "mixed": 2,
+              "none": 19,
+              "unclear": 2
+            },
+            "coherence": {
+              "yes": 23,
+              "no": 0,
+              "unclear": 1
+            },
+            "relevance": {
+              "yes": 22,
+              "no": 0,
+              "unclear": 2
+            },
+            "task_completion": {
+              "complete": 14,
+              "partial": 4,
+              "no attempt": 2,
+              "unclear": 4
+            }
+          },
+          "proxy_by_rubric_refusal": {
+            "false": {
+              "full": 0,
+              "mixed": 0,
+              "none": 17,
+              "unclear": 0
+            },
+            "true": {
+              "full": 1,
+              "mixed": 2,
+              "none": 2,
+              "unclear": 2
+            }
+          },
+          "agreement_range": [
+            0.8333333333333334,
+            0.9166666666666666
+          ],
+          "refusal_range": [
+            0.125,
+            0.20833333333333334
+          ],
+          "unavailable_reason": null
+        }
+      },
+      "combined_probability": {
+        "available": true,
+        "weights": {
+          "real": 0.3076923076923077,
+          "baseline_random": 0.6923076923076923
+        },
+        "population_units": 3198,
+        "agreement_range": [
+          0.9375,
+          0.9567307692307693
+        ],
+        "refusal_range": [
+          0.13942307692307693,
+          0.15865384615384615
+        ]
+      }
+    }
+  },
+  "condition_coverage": [
+    {
+      "condition_id": "final-baseline",
+      "control": "baseline",
+      "population_units": 246,
+      "probability": 3,
+      "targeted": 1
+    },
+    {
+      "condition_id": "final-pooled-real",
+      "control": "real",
+      "population_units": 246,
+      "probability": 3,
+      "targeted": 0
+    },
+    {
+      "condition_id": "final-pooled-random42",
+      "control": "random42",
+      "population_units": 246,
+      "probability": 0,
+      "targeted": 2
+    },
+    {
+      "condition_id": "final-pooled-random43",
+      "control": "random43",
+      "population_units": 246,
+      "probability": 1,
+      "targeted": 4
+    },
+    {
+      "condition_id": "final-cyber_intrusion-real",
+      "control": "real",
+      "population_units": 246,
+      "probability": 5,
+      "targeted": 1
+    },
+    {
+      "condition_id": "final-cyber_intrusion-random42",
+      "control": "random42",
+      "population_units": 246,
+      "probability": 1,
+      "targeted": 2
+    },
+    {
+      "condition_id": "final-cyber_intrusion-random43",
+      "control": "random43",
+      "population_units": 246,
+      "probability": 3,
+      "targeted": 2
+    },
+    {
+      "condition_id": "final-dangerous_substances-real",
+      "control": "real",
+      "population_units": 246,
+      "probability": 5,
+      "targeted": 2
+    },
+    {
+      "condition_id": "final-dangerous_substances-random42",
+      "control": "random42",
+      "population_units": 246,
+      "probability": 5,
+      "targeted": 0
+    },
+    {
+      "condition_id": "final-dangerous_substances-random43",
+      "control": "random43",
+      "population_units": 246,
+      "probability": 2,
+      "targeted": 2
+    },
+    {
+      "condition_id": "final-disinformation-real",
+      "control": "real",
+      "population_units": 246,
+      "probability": 3,
+      "targeted": 3
+    },
+    {
+      "condition_id": "final-disinformation-random42",
+      "control": "random42",
+      "population_units": 246,
+      "probability": 1,
+      "targeted": 2
+    },
+    {
+      "condition_id": "final-disinformation-random43",
+      "control": "random43",
+      "population_units": 246,
+      "probability": 0,
+      "targeted": 3
+    }
+  ],
+  "control_coverage": {
+    "baseline": {
+      "population_units": 246,
+      "audited_units": 4
+    },
+    "real": {
+      "population_units": 984,
+      "audited_units": 22
+    },
+    "random42": {
+      "population_units": 984,
+      "audited_units": 13
+    },
+    "random43": {
+      "population_units": 984,
+      "audited_units": 17
+    }
+  },
+  "targeted_primary": {
+    "late_match": 6,
+    "refill": 6,
+    "short_steered": 6,
+    "at_cap": 6
+  },
+  "unit": "(condition_id, row_id) response unit; no semantic-group averaging",
+  "limits": [
+    "Original human layer was procedurally masked; response text could reveal intervention effects.",
+    "Owner-adjudicated layer is informed and post-hoc, not independent gold or a fifth rater.",
+    "All-ground refusal under the rubric, not evidence of the true motive for a decline.",
+    "Ranges reflect unclear labels only, not confidence intervals, sampling uncertainty, or all possible rating errors.",
+    "Targeted results are separate descriptive results with no population inference."
+  ],
+  "sampling_checks": {
+    "rank_replayed": true,
+    "complete_frame": true,
+    "equal_inclusion_within_strata": true,
+    "probability_inclusion": {
+      "real": 0.016260162601626018,
+      "baseline_random": 0.007226738934056007
+    },
+    "targeted_quotas": [
+      {
+        "flag": "empty",
+        "available_population": 0,
+        "quota_selected": 0,
+        "quota_shortfall_before_refill": 6
+      },
+      {
+        "flag": "short_steered",
+        "available_population": 500,
+        "quota_selected": 6,
+        "quota_shortfall_before_refill": 0
+      },
+      {
+        "flag": "late_match",
+        "available_population": 43,
+        "quota_selected": 6,
+        "quota_shortfall_before_refill": 0
+      },
+      {
+        "flag": "at_cap",
+        "available_population": 1321,
+        "quota_selected": 6,
+        "quota_shortfall_before_refill": 0
+      }
+    ],
+    "refill_count": 6
+  }
+}

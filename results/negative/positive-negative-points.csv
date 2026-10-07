@@ -1,0 +1,5 @@
+target,positive_alpha,negative_alpha,baseline_accuracy,positive_accuracy,negative_accuracy,positive_delta_vs_baseline,negative_delta_vs_baseline,scope
+pooled,1.0,-1.0,0.6035087719298246,0.5994152046783625,0.6058479532163743,-0.004093567251461989,0.0023391812865497076,existing point estimates only; no sign contrast or test
+cyber_intrusion,1.0,-1.0,0.6035087719298246,0.5994152046783625,0.6070175438596491,-0.004093567251461989,0.003508771929824561,existing point estimates only; no sign contrast or test
+dangerous_substances,1.0,-1.0,0.6035087719298246,0.5964912280701754,0.6087719298245614,-0.007017543859649123,0.005263157894736842,existing point estimates only; no sign contrast or test
+disinformation,1.0,-1.0,0.6035087719298246,0.5982456140350877,0.6023391812865497,-0.005263157894736842,-0.001169590643274854,existing point estimates only; no sign contrast or test

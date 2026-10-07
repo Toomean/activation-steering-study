@@ -1,0 +1,612 @@
+#!external/python/env python3
+"""One-shot positive-final export through the frozen analysis and audit APIs.
+
+The validation process preserves the saved 12/24 Torch runtime. The separate
+analysis process uses one thread. Neither process loads model weights or scores
+new responses. Raw text is written only to the private, locally blinded HTML.
+"""
+
+import argparse
+from collections import Counter, defaultdict
+from collections.abc import Mapping
+from datetime import datetime, timezone
+import csv
+import hashlib
+import html
+import importlib.metadata
+import inspect
+import json
+import math
+import os
+from pathlib import Path
+import platform
+import random
+import shlex
+from statistics import mean
+import subprocess
+import sys
+from typing import Any
+
+import numpy as np
+import scipy
+from scipy.stats import bootstrap
+import torch
+
+from activation_steering_study.analysis import harmless_audit, harmless_results
+from activation_steering_study.data.harmless import load_harmless_manifest
+from activation_steering_study.steering.harmless_execution import (
+    TARGETS, development_specs, final_specs, select_domain_doses,
+    validate_completed_artifact,
+)
+
+ASSIGNED = Path('historical/workspace')
+EXECUTION = Path('historical/positive-execution')
+IMPLEMENTATION = EXECUTION / 'implementation'
+PLANNING = EXECUTION / 'planning'
+RUNS = Path('unpublished/positive')
+READY = PLANNING / 'assessments/a3/iterations/iteration-04-positive-execution-2026-10-05/readiness'
+PYTHON = IMPLEMENTATION / '.venv/bin/python'
+COMMITS = {'implementation': '249d0cd148d8e49fe1fd290012258ed618454f13',
+           'planning': '769591898db49c9eadb08eff3a55e5421f0e69d3'}
+SCRIPT = Path(__file__).resolve()
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def require(passed: bool, reason: str) -> None:
+    if not passed:
+        raise ValueError(reason)
+
+
+def sha(path: Path) -> str:
+    with path.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+
+def read(path: Path) -> Any:
+    return json.loads(path.read_bytes())
+
+
+def read_analysis_artifact(path: Path) -> Any:
+    def project(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result = {}
+        for key, value in pairs:
+            if key == 'completion':
+                result['decoded_empty'] = value == ''
+                result['decoded_empty_or_whitespace'] = not value.strip()
+            elif key not in {'prompt_token_ids', 'generated_token_ids', 'phrase_matches',
+                             'instruction', 'question', 'choices'}:
+                result[key] = value
+        return result
+    return json.loads(path.read_bytes(), object_pairs_hook=project)
+
+
+def write_json(path: Path, value: Any) -> None:
+    with path.open('x', encoding='utf-8') as stream:
+        json.dump(value, stream, indent=2, ensure_ascii=False, allow_nan=False)
+        stream.write('\n')
+
+
+def write_table(out: Path, name: str, rows: list[dict[str, Any]]) -> None:
+    require(bool(rows), f'Empty table: {name}')
+    fields = list(rows[0])
+    require(all(set(row) == set(fields) for row in rows), f'Table schema differs: {name}')
+    require(all(type(v) in (str, bool, int, float, type(None)) for row in rows for v in row.values()),
+            f'Non-scalar table cell: {name}')
+    write_json(out / f'{name}.json', rows)
+    with (out / f'{name}.csv').open('x', newline='', encoding='utf-8') as stream:
+        writer = csv.DictWriter(stream, fields)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def runtime() -> dict[str, Any]:
+    return {'python': platform.python_version(), 'executable': str(Path(sys.executable).resolve()),
+            'versions': {name: importlib.metadata.version(name)
+                         for name in ('torch', 'transformers', 'numpy', 'pyarrow')},
+            'torch_threads': torch.get_num_threads(),
+            'torch_interop_threads': torch.get_num_interop_threads()}
+
+
+def git_state(root: Path) -> dict[str, Any]:
+    def git(*args: str) -> str:
+        return subprocess.run(['git', '--no-optional-locks', '-C', str(root), *args],
+                              check=True, text=True, capture_output=True).stdout.strip()
+    hooks = subprocess.run(['git', '-C', str(root), 'config', '--get', 'core.hooksPath'],
+                           text=True, capture_output=True)
+    require(hooks.returncode in (0, 1), 'Cannot read hooks path')
+    return {'head': git('rev-parse', 'HEAD'), 'status': git('status', '--short'),
+            'hooks_path': hooks.stdout.strip() or None,
+            'latest_log': git('log', '-1', '--format=%H %s')}
+
+
+def source_inventory(freeze: dict[str, Any]) -> list[dict[str, Any]]:
+    paths: dict[Path, str] = {READY / 'freeze.json': 'campaign freeze', SCRIPT: 'export adapter',
+                            Path(sys.executable).resolve(): 'Python executable',
+                            IMPLEMENTATION / '.venv/pyvenv.cfg': 'frozen virtual environment'}
+    for label, item in freeze['inputs'].items():
+        root = {'implementation': IMPLEMENTATION, 'planning': PLANNING}[item['repo']]
+        path = root / item['path']
+        require(sha(path) == item['sha256'], f'Frozen input changed: {label}')
+        paths[path] = label
+    for path in RUNS.rglob('*'):
+        if path.is_file():
+            paths[path] = 'official run record; bytes only unless needed by validation'
+    for name in ('torch', 'transformers', 'numpy', 'pyarrow', 'scipy'):
+        distribution = importlib.metadata.distribution(name)
+        for entry in distribution.files or []:
+            if entry.name in ('METADATA', 'RECORD') and '.dist-info/' in str(entry):
+                paths[Path(str(distribution.locate_file(entry)))] = f'{name} installed distribution manifest'
+    bootstrap_file = inspect.getsourcefile(bootstrap)
+    require(bootstrap_file is not None, 'SciPy bootstrap source unavailable')
+    paths[Path(str(bootstrap_file))] = 'installed SciPy bootstrap source'
+    return [{'path': str(path), 'byte_sha256': sha(path), 'size_bytes': path.stat().st_size,
+             'purpose': purpose} for path, purpose in sorted(paths.items())]
+
+
+def check_unchanged(inventory: list[dict[str, Any]]) -> None:
+    for item in inventory:
+        path = Path(item['path'])
+        require(sha(path) == item['byte_sha256'] and path.stat().st_size == item['size_bytes'],
+                f'Source changed during export: {path.name}')
+    recorded = {item['path'] for item in inventory if Path(item['path']).is_relative_to(RUNS)}
+    require(recorded == {str(path) for path in RUNS.rglob('*') if path.is_file()},
+            'Official record membership changed')
+
+
+def frozen_paths(freeze: dict[str, Any]) -> tuple[Path, Path]:
+    return (PLANNING / freeze['inputs']['tensor']['path'],
+            PLANNING / freeze['inputs']['reference']['path'])
+
+
+def check_seals(ledger: dict[str, Any], seal: dict[str, Any], freeze: dict[str, Any]) -> None:
+    require(ledger['status'] == seal['reason'] == 'positive_complete', 'Positive core not complete')
+    require(ledger['commits'] == COMMITS, 'Frozen commits differ')
+    require(sha(READY / 'freeze.json') == ledger['freeze_sha256'], 'Campaign freeze differs')
+    configuration = harmless_audit.json_digest({'freeze_sha256': ledger['freeze_sha256'],
+                                               'commits': COMMITS, 'environment': freeze['environment']})
+    require(configuration == ledger['configuration_sha256'] == seal['configuration_sha256'],
+            'Configuration digest differs')
+    require(harmless_audit.json_digest(seal) == ledger['population_sha256'], 'Population seal differs')
+    dose = read(RUNS / 'dose-freeze.json')
+    require(dose == ledger['dose_freeze'] and harmless_audit.json_digest(dose) == ledger['dose_freeze_sha256'],
+            'Dose freeze differs')
+    require(dose['configuration_sha256'] == configuration, 'Dose configuration differs')
+    specs = (*development_specs(), *final_specs(dose['doses']))
+    require(set(ledger['attempts']) == {spec.condition_id for spec in specs}, 'Missing or extra core conditions')
+    require(set(seal['completed']) == {spec.condition_id for spec in final_specs(dose['doses'])},
+            'Sealed final population is a subset or has extra conditions')
+    for spec in specs:
+        attempts = ledger['attempts'][spec.condition_id]
+        require(bool(attempts) and attempts[-1]['status'] == 'completed', 'Incomplete mandatory condition')
+        if spec.role == 'final':
+            require(attempts[-1]['completed'] == seal['completed'][spec.condition_id], 'Ledger/seal entry differs')
+        else:
+            require(attempts[-1]['completed']['sha256'] == dose['development'][spec.condition_id],
+                    'Development source of dose freeze differs')
+
+
+def bind_conditions(artifacts: dict[str, Any], doses: dict[str, float], validated: dict[str, Any]) -> None:
+    specs = final_specs(doses)
+    require(set(artifacts) == set(validated) == {spec.condition_id for spec in specs},
+            'Analysis requires all thirteen validated final conditions')
+    for spec in specs:
+        artifact = artifacts[spec.condition_id]
+        require(artifact['condition'] == spec.to_dict(), 'Final condition/dose/seed binding differs')
+        require(artifact['provenance']['direction'] == validated[spec.condition_id]['direction'],
+                'Validated tensor/dose/seed binding differs')
+        result = artifact['result']
+        require((result['role'], result['layer_index'], result['max_new_tokens'], result['alpha'])
+                == ('final', 14, 256, spec.alpha), 'Final result contract differs')
+        require((len(result['harmless']), len({r['semantic_group_id'] for r in result['harmless']}),
+                 sum(r['quality_subset'] for r in result['harmless']), len(result['mmlu']))
+                == (246, 245, 63, 1710), 'Analysis requires complete final panels')
+        subject_counts = Counter(row['subject'] for row in result['mmlu'])
+        require(len(subject_counts) == 57 and set(subject_counts.values()) == {30}, 'MMLU subject panel differs')
+    for target in TARGETS:
+        controls = [artifacts[f'final-{target}-{control}'] for control in ('real', 'random42', 'random43')]
+        require(len({a['provenance']['direction']['vector_sha256'] for a in controls}) == 3,
+                'Real/random tensor identities are duplicated')
+        require([a['condition']['random_seed'] for a in controls] == [None, 42, 43],
+                'Actual fixed control seeds differ')
+
+
+def audit_html(rows: list[dict[str, str]]) -> str:
+    require(all(set(row) == {'audit_id', 'prompt', 'response'} for row in rows), 'Unblinded audit field')
+    sections = []
+    for row in rows:
+        sections.append('<article><h2>' + html.escape(row['audit_id']) + '</h2><h3>Prompt</h3><pre>'
+                        + html.escape(row['prompt']) + '</pre><h3>Response</h3><pre>'
+                        + html.escape(row['response']) + '</pre></article>')
+    return ('<!doctype html><html lang="en"><meta charset="utf-8"><title>Blinded response audit</title>'
+            '<style>body{max-width:70em;margin:2em auto;font:18px/1.5 sans-serif}pre{white-space:pre-wrap;'
+            'overflow-wrap:anywhere;font:inherit}article{border-top:1px solid #aaa;margin-top:2em}</style>'
+            '<h1>Blinded response audit</h1>'
+            '<p>Complete labels.csv using the rubric in rubric.json. Prompts may recur. Text may reveal '
+            'intervention effects despite procedural blinding. Leave unresolved labels as unclear and '
+            'give a reason. Freeze and hash your completed labels before revealing the private mapping.</p>'
+            + ''.join(sections) + '</html>')
+
+
+def materialize_audit(out: Path, artifacts: dict[str, Any], freeze: dict[str, Any]) -> dict[str, Any]:
+    rank = read(READY / 'audit-rank.json')
+    tensor, reference = frozen_paths(freeze)
+    packet, blinded = harmless_audit.render_blinded_packet(RUNS, rank, tensor_path=tensor, reference_path=reference)
+    mapping = packet['mapping']
+    units = {(item['condition_id'], row['row_id']): (item['control'], row)
+             for artifact in artifacts.values() for item in [artifact['condition']]
+             for row in artifact['result']['harmless']}
+    selected = [(item['condition_id'], item['row_id']) for item in mapping]
+    require(len(selected) == len(set(selected)) == len(blinded) == 56, 'Audit size or disjointness differs')
+    strata = Counter('real' if control == 'real' else 'baseline_random' for control, _ in units.values())
+    require(dict(strata) == {'real': 984, 'baseline_random': 2214}, 'Audit completed population differs')
+    require(all(packet['strata'][key] == {'available': value, 'selected': 16, 'shortfall': 0}
+                for key, value in strata.items()), 'Audit stratum count differs')
+    ordered = [tuple(unit) for unit in rank['ranked'] if tuple(unit) in units]
+    flags = {unit: harmless_audit.response_flags(dict(row), control) for unit, (control, row) in units.items()}
+    probability = []
+    for stratum in ('real', 'baseline_random'):
+        expected = [unit for unit in ordered if ('real' if units[unit][0] == 'real' else 'baseline_random') == stratum][:16]
+        observed = {(m['condition_id'], m['row_id']) for m in mapping if m['arm'] == 'probability' and m['stratum'] == stratum}
+        require(observed == set(expected), 'Frozen probability rank differs')
+        probability.extend(expected)
+    expected_order = probability.copy()
+    quotas = []
+    for flag in harmless_audit.FLAGS:
+        chosen = [unit for unit in ordered if unit not in expected_order and flag in flags[unit]][:6]
+        observed = {(m['condition_id'], m['row_id']) for m in mapping if m['primary'] == flag}
+        require(observed == set(chosen), 'Frozen targeted quota differs')
+        expected_order.extend(chosen)
+        quotas.append({'flag': flag, 'available_population': sum(flag in values for values in flags.values()),
+                       'quota_selected': len(chosen), 'quota_shortfall_before_refill': 6 - len(chosen)})
+    refill = [unit for unit in ordered if unit not in expected_order][:56 - len(expected_order)]
+    expected_order.extend(refill)
+    random.Random(43).shuffle(expected_order)
+    require(selected == expected_order, 'Seed-43 presentation order differs')
+    require(packet['targeted_shortfall'] == 0, 'Targeted total shortfall')
+    require([row['audit_id'] for row in blinded] == [f'A{i:03d}' for i in range(1, 57)], 'Opaque IDs differ')
+    require(all(set(row) == {'audit_id', 'prompt', 'response'} for row in blinded), 'Hidden audit field leaked')
+    private = out / 'private-audit'
+    private.mkdir(mode=0o700)
+    os.chmod(private, 0o700)
+    write_json(private / 'mapping-private.json', packet)
+    write_json(private / 'selection-checks-private.json', {
+        'quotas': quotas, 'refill_count': len(refill), 'probability_units': len(probability),
+        'targeted_units': len(selected) - len(probability), 'total_units': len(selected),
+        'disjoint_units_verified': True, 'sampling_seed': 42, 'presentation_seed': 43,
+        'rank_sha256': packet['rank_sha256'], 'population_sha256': packet['population_sha256'],
+        'strata': packet['strata'], 'stratum_population_weights': packet['available_population_weights'],
+        'condition_coverage': dict(Counter(m['condition_id'] for m in mapping)),
+        'selected_all_flags': dict(Counter(flag for m in mapping for flag in m['flags'])),
+        'labels_status': 'blank; awaiting owner', 'no_labels_inferred': True})
+    write_json(private / 'rubric.json', packet['rubric'])
+    (private / 'packet.html').write_text(audit_html(blinded), encoding='utf-8')
+    with (private / 'labels.csv').open('x', newline='', encoding='utf-8') as stream:
+        writer = csv.DictWriter(stream, ['audit_id', 'refusal', 'coherence', 'relevance', 'task_completion', 'reason'])
+        writer.writeheader()
+        writer.writerows({'audit_id': row['audit_id']} for row in blinded)
+    for path in private.iterdir():
+        os.chmod(path, 0o600)
+    with (private / 'SHA256SUMS').open('x') as stream:
+        for path in sorted(private.iterdir()):
+            if path.name != 'SHA256SUMS':
+                stream.write(f'{sha(path)}  {path.name}\n')
+    os.chmod(private / 'SHA256SUMS', 0o600)
+    return {'status': 'packet materialized; labels pending', 'owner_packet': 'private-audit/packet.html',
+            'blank_labels': 'private-audit/labels.csv', 'private_manifest_byte_sha256': sha(private / 'SHA256SUMS'),
+            'raw_text_exported_to_public_evidence': False, 'labels_inferred': False}
+
+
+def validate_and_audit(out: Path) -> None:
+    freeze = read(READY / 'freeze.json')
+    torch.set_num_threads(freeze['runtime']['torch_threads'])
+    torch.set_num_interop_threads(freeze['runtime']['torch_interop_threads'])
+    require(runtime() == freeze['runtime'], 'Validation runtime is not the frozen execution runtime')
+    evidence = out / 'evidence'
+    check_unchanged(read(evidence / 'source-inventory-before.json'))
+    ledger, seal = read(RUNS / 'ledger.json'), read(RUNS / 'population.json')
+    check_seals(ledger, seal, freeze)
+    tensor, reference = frozen_paths(freeze)
+    snapshot = read(READY / 'model-snapshot.json')
+    expected_inputs = {key: item['sha256'] for key, item in freeze['inputs'].items()}
+    artifacts: dict[str, Any] = {}
+    validation: dict[str, Any] = {}
+    for spec in (*development_specs(), *final_specs(ledger['dose_freeze']['doses'])):
+        entry = ledger['attempts'][spec.condition_id][-1]
+        directory = RUNS / spec.condition_id / f"attempt-{entry['attempt']:03d}"
+        manifest = read(directory / 'run-manifest.json')
+        path = directory / 'output/completed.json'
+        require(entry['record_dir'] == str(directory) and entry['completed']['path'] == str(path), 'Run path differs')
+        require(manifest['status'] == 'completed' and manifest['settled'] and manifest['output_hashes_final']
+                and manifest['returncode'] == 0 and not manifest['signals_received'], 'Unsettled completed run')
+        require(manifest['condition'] == spec.to_dict() and manifest['completed'] == entry['completed'], 'Run manifest differs')
+        require(manifest['configuration_sha256'] == ledger['configuration_sha256']
+                and manifest['commits'] == COMMITS and manifest['cwd'] == str(IMPLEMENTATION), 'Run freeze binding differs')
+        require(manifest['inputs_before'] == manifest['inputs_after'] == expected_inputs, 'Pre/post source hashes differ')
+        require(manifest['model_snapshot_before'] == manifest['model_snapshot_after'] == snapshot, 'Pre/post model descriptor differs')
+        require(manifest['runtime'] == freeze['runtime'] and manifest['environment'] == freeze['environment']
+                and manifest['child_effective_environment'] == freeze['child_effective_environment'], 'Saved environment differs')
+        for name, digest in manifest['output_sha256'].items():
+            require(sha(directory / 'output' / name) == digest, 'Run output digest differs')
+        require(sha(path) == entry['completed']['sha256'], 'Completed byte digest differs')
+        artifact = validate_completed_artifact(path, spec, tensor_path=tensor, reference_path=reference)
+        execution = read(directory / 'output/execution.json')
+        require(execution['condition'] == artifact['condition'] and execution['inputs'] == artifact['provenance']['inputs']
+                and execution['direction'] == manifest['direction'] == artifact['provenance']['direction']
+                and execution['environment'] == artifact['provenance']['runtime']['environment'] == freeze['runtime'],
+                'Worker execution/provenance binding differs')
+        for module, origin in manifest['import_origins'].items():
+            expected = IMPLEMENTATION / 'src' / Path(*module.split('.'))
+            expected = expected / '__init__.py' if expected.is_dir() else expected.with_suffix('.py')
+            require(Path(origin) == expected, 'Saved import resolution differs')
+        artifacts[spec.condition_id] = artifact
+        validation[spec.condition_id] = {'byte_sha256': sha(path), 'path': str(path), 'condition': spec.to_dict(),
+                                        'direction': artifact['provenance']['direction'],
+                                        'runtime': artifact['provenance']['runtime'],
+                                        'manifest_byte_sha256': sha(directory / 'run-manifest.json'),
+                                        'execution_byte_sha256': sha(directory / 'output/execution.json'),
+                                        'started_at': manifest['started_at'], 'ended_at': manifest['ended_at']}
+    require(select_domain_doses([artifacts[s.condition_id] for s in development_specs()]) == ledger['dose_freeze']['doses'],
+            'Frozen development selection no longer reproduces')
+    finals = {s.condition_id: artifacts[s.condition_id] for s in final_specs(ledger['dose_freeze']['doses'])}
+    validated_finals = {key: validation[key] for key in finals}
+    bind_conditions(finals, ledger['dose_freeze']['doses'], validated_finals)
+    audit_status = materialize_audit(out, finals, freeze)
+    check_unchanged(read(evidence / 'source-inventory-before.json'))
+    write_json(evidence / 'validation.json', {'completed_at': now(), 'runtime': runtime(),
+               'source_inventory_byte_sha256': sha(evidence / 'source-inventory-before.json'),
+               'all_11_development_and_13_final_validated': True, 'dose_selection_reproduced': True,
+               'sources_and_records_unchanged': True, 'conditions': validation})
+    write_json(evidence / 'audit-status.json', audit_status)
+    print('Frozen validation and blinded packet materialization complete.', flush=True)
+
+
+def quality_statistics(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    quality = [row for row in rows if row['quality_subset']]
+    likelihoods = [row['response_likelihood'] for row in quality]
+    nll = [value['mean_nll'] for value in likelihoods if value is not None and value['mean_nll'] is not None]
+    ppl = [value['perplexity'] for value in likelihoods if value is not None and value['perplexity'] is not None]
+    return {'quality_rows': len(quality), 'missing_nll_count': len(quality) - len(nll),
+            'missing_perplexity_count': len(quality) - len(ppl),
+            'arithmetic_mean_response_perplexity': mean(ppl) if ppl else None,
+            'exp_mean_response_nll': math.exp(mean(nll)) if nll else None}
+
+
+def summaries(out: Path, artifacts: dict[str, Any], manifest: list[Any]) -> None:
+    rows: list[dict[str, Any]] = []
+    histogram: list[dict[str, Any]] = []
+    subjects: list[dict[str, Any]] = []
+    for cid, artifact in artifacts.items():
+        result = artifact['result']
+        summary = harmless_results.summarize_condition(manifest, result)
+        harmless = result['harmless']
+        counts = [row['completion_token_count'] for row in harmless]
+        distribution = Counter(counts)
+        q = summary['harmless']['quality']
+        quality = quality_statistics(harmless)
+        require(quality['missing_nll_count'] == q['missing_nll_count'], 'Quality availability differs')
+        row = {**artifact['condition'], 'harmless_rows': len(harmless), 'harmless_groups': summary['harmless']['group_count'],
+               'group_mean_refusal_rate': summary['harmless']['refusal_rate'],
+               'row_refusal_count_descriptive': sum(r['refusal_proxy'] for r in harmless),
+               'mmlu_items': summary['mmlu']['row_count'], 'mmlu_subjects': summary['mmlu']['subject_count'],
+               'mmlu_equal_subject_accuracy': summary['mmlu']['accuracy'],
+               'mmlu_correct_count': sum(r['correct'] for r in result['mmlu']),
+               'mmlu_equal_subject_option_mass': summary['mmlu']['mean_option_mass'],
+               'mean_response_nll': q['mean_nll'], 'mean_prompt_kl_baseline_to_steered': q['mean_kl'],
+               'missing_kl_count': q['missing_kl_count'], **quality,
+               'completion_tokens_mean': mean(counts), 'completion_tokens_min': min(counts),
+               **{f'completion_tokens_q{percentile:02d}': float(np.percentile(counts, percentile, method='linear'))
+                  for percentile in (25, 50, 75, 95)},
+               'completion_tokens_max': max(counts), 'zero_generated_tokens': distribution[0],
+               'at_cap_count': distribution[256], 'at_cap_fraction': distribution[256] / len(counts),
+               'decoded_empty_count': sum(row['decoded_empty'] for row in harmless),
+               'decoded_empty_or_whitespace_count': sum(row['decoded_empty_or_whitespace'] for row in harmless)}
+        rows.append(row)
+        histogram.extend({'condition_id': cid, 'completion_token_count': count, 'row_count': distribution[count],
+                          'fraction': distribution[count] / len(counts)} for count in range(257))
+        grouped: dict[str, list[Any]] = defaultdict(list)
+        for item in result['mmlu']:
+            grouped[item['subject']].append(item)
+        subjects.extend({'condition_id': cid, 'subject': subject, 'item_count': len(items),
+                         'correct_count': sum(item['correct'] for item in items),
+                         'accuracy': mean(item['correct'] for item in items),
+                         'mean_option_mass': mean(item['option_mass'] for item in items)}
+                        for subject, items in sorted(grouped.items()))
+    write_table(out, 'condition-summary', rows)
+    write_table(out, 'completion-token-histogram', histogram)
+    write_table(out, 'mmlu-subject-summary', subjects)
+
+
+def comparison_row(comparison_id: str, family: str, before_id: str, after_id: str,
+                   comparison: Mapping[str, Any]) -> dict[str, Any]:
+    harmless, mmlu = comparison['harmless'], comparison['mmlu']
+    support = harmless.get('support')
+    h_bounds, m_bounds = harmless['nominal_interval'], mmlu['nominal_interval']
+    return {'comparison_id': comparison_id, 'family': family, 'before_condition': before_id, 'after_condition': after_id,
+            'expected_harmless_direction': support['expected_direction'] if support else None,
+            'harmless_before': harmless['before'], 'harmless_after': harmless['after'], 'harmless_delta': harmless['delta'],
+            'harmless_ci_low': h_bounds[0] if h_bounds else None, 'harmless_ci_high': h_bounds[1] if h_bounds else None,
+            'harmless_interval_status': harmless['interval_status'], 'harmless_interval_reason': harmless['interval_reason'],
+            'n_groups': sum(harmless[key] for key in ('positive_group_count', 'negative_group_count', 'unchanged_group_count')),
+            'k_nonzero_groups': harmless['positive_group_count'] + harmless['negative_group_count'],
+            'positive_groups': harmless['positive_group_count'], 'negative_groups': harmless['negative_group_count'],
+            'unchanged_groups': harmless['unchanged_group_count'], 'harmless_supported': support['supported'] if support else None,
+            'support_method': support['method'] if support else None,
+            'support_reason': support['reason'] if support else 'descriptive_contrast_no_registered_direction',
+            'one_sided_probability_upper_bound': support['one_sided_probability_upper_bound'] if support else None,
+            'two_sided_probability_upper_bound': support['two_sided_probability_upper_bound'] if support else None,
+            'mmlu_before': mmlu['before'], 'mmlu_after': mmlu['after'], 'mmlu_delta': mmlu['delta'],
+            'mmlu_ci_low': m_bounds[0] if m_bounds else None, 'mmlu_ci_high': m_bounds[1] if m_bounds else None,
+            'mmlu_interval_status': mmlu['interval_status'], 'mmlu_interval_reason': mmlu['interval_reason'],
+            'mmlu_gains_wrong_to_correct': mmlu['gains'], 'mmlu_losses_correct_to_wrong': mmlu['losses'],
+            'mmlu_option_mass_delta': mmlu['option_mass_delta'], 'mmlu_inference_scope': 'estimation_only',
+            'mmlu_items': 1710, 'mmlu_subjects': 57}
+
+
+def contrasts(out: Path, artifacts: dict[str, Any], manifest: list[Any]) -> None:
+    comparisons: list[dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
+    conjunctions: list[dict[str, Any]] = []
+    subjects: list[dict[str, Any]] = []
+
+    def retain(family: str, before_id: str, after_id: str, result: Mapping[str, Any]) -> None:
+        if family == 'domain_minus_pooled_descriptive':
+            result['harmless'].pop('support')
+        comparison_id = after_id + '__minus__' + before_id
+        comparisons.append({'comparison_id': comparison_id, 'family': family, 'before_condition': before_id,
+                            'after_condition': after_id, 'result': result})
+        rows.append(comparison_row(comparison_id, family, before_id, after_id, result))
+        before = {row['id']: row for row in artifacts[before_id]['result']['mmlu']}
+        grouped: dict[str, list[tuple[Any, Any]]] = defaultdict(list)
+        for after in artifacts[after_id]['result']['mmlu']:
+            grouped[after['subject']].append((before[after['id']], after))
+        subjects.extend({'comparison_id': comparison_id, 'subject': subject, 'item_count': len(pairs),
+                         'accuracy_before': mean(a['correct'] for a, _ in pairs),
+                         'accuracy_after': mean(b['correct'] for _, b in pairs),
+                         'accuracy_delta': mean(float(b['correct']) - float(a['correct']) for a, b in pairs),
+                         'gains_wrong_to_correct': sum(not a['correct'] and b['correct'] for a, b in pairs),
+                         'losses_correct_to_wrong': sum(a['correct'] and not b['correct'] for a, b in pairs),
+                         'option_mass_before': mean(a['option_mass'] for a, _ in pairs),
+                         'option_mass_after': mean(b['option_mass'] for _, b in pairs),
+                         'option_mass_delta': mean(b['option_mass'] - a['option_mass'] for a, b in pairs)}
+                        for subject, pairs in sorted(grouped.items()))
+
+    baseline_id = 'final-baseline'
+    baseline = artifacts[baseline_id]['result']
+    for target in TARGETS:
+        real_id = f'final-{target}-real'
+        real = artifacts[real_id]['result']
+        print(f'Computing frozen real-baseline and two real-random contrasts: {target}', flush=True)
+        comparison = harmless_results.compare_conditions(manifest, baseline, real, expected_direction='increase')
+        retain('real_minus_baseline', baseline_id, real_id, comparison)
+        random_result = harmless_results.compare_random_controls(
+            manifest, real, artifacts[f'final-{target}-random42']['result'],
+            artifacts[f'final-{target}-random43']['result'], expected_direction='increase')
+        for control, comparison in random_result['contrasts'].items():
+            retain('real_minus_random', f'final-{target}-{control}', real_id, comparison)
+        conjunctions.append({'target': target, 'expected_direction': random_result['expected_direction'],
+                             'both_fixed_random_controls_supported': random_result['supported'],
+                             'random42_supported': random_result['contrasts']['random42']['harmless']['support']['supported'],
+                             'random43_supported': random_result['contrasts']['random43']['harmless']['support']['supported'],
+                             'scope': 'these two fixed random orientations only'})
+    for target in TARGETS[1:]:
+        before_id, after_id = 'final-pooled-real', f'final-{target}-real'
+        print(f'Computing frozen descriptive domain-pooled contrast: {target}', flush=True)
+        # The API needs a direction to return an interval. It has no registered
+        # direction here, so its support block is removed before any export.
+        comparison = harmless_results.compare_conditions(manifest, artifacts[before_id]['result'],
+                                                          artifacts[after_id]['result'], expected_direction='increase')
+        retain('domain_minus_pooled_descriptive', before_id, after_id, comparison)
+    require(len(rows) == 15 and len(subjects) == 15 * 57, 'Prescribed contrast count differs')
+    write_json(out / 'frozen-api-comparisons.json', comparisons)
+    write_table(out, 'final-contrasts', rows)
+    write_table(out, 'random-control-conjunction', conjunctions)
+    write_table(out, 'mmlu-subject-contrasts', subjects)
+    plot = []
+    for row in rows:
+        for endpoint in ('harmless', 'mmlu'):
+            plot.append({'comparison_id': row['comparison_id'], 'family': row['family'], 'endpoint': endpoint,
+                         'estimate': row[f'{endpoint}_delta'], 'ci_low': row[f'{endpoint}_ci_low'],
+                         'ci_high': row[f'{endpoint}_ci_high'], 'interval_status': row[f'{endpoint}_interval_status'],
+                         'interval_reason': row[f'{endpoint}_interval_reason'], 'unit': 'proportion_difference'})
+    write_table(out, 'final-plot-data', plot)
+
+
+def analyze(out: Path) -> None:
+    torch.set_num_threads(1)
+    torch.set_num_interop_threads(1)
+    require(all(os.environ.get(name) == '1' for name in ('OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS')),
+            'Analysis requires one numerical thread')
+    require(Path.cwd().resolve() == IMPLEMENTATION and Path(sys.prefix).resolve() == IMPLEMENTATION / '.venv',
+            'Use the frozen cwd and virtual environment')
+    evidence = out / 'evidence'
+    evidence.mkdir()
+    freeze = read(READY / 'freeze.json')
+    states = {name: git_state(root) for name, root in (('implementation', IMPLEMENTATION), ('planning', PLANNING))}
+    require(all(states[name]['head'] == commit and states[name]['status'] == '' for name, commit in COMMITS.items()),
+            'Frozen checkout differs')
+    inventory = source_inventory(freeze)
+    write_json(evidence / 'source-inventory-before.json', inventory)
+    validation_command = [str(PYTHON), '-B', str(SCRIPT), '--phase', 'validate-audit', '--out', str(out)]
+    validation_env = dict(freeze['child_effective_environment'])
+    # No compiler work is expected. Any incidental cache write stays in scratch.
+    validation_env['TORCHINDUCTOR_CACHE_DIR'] = str(out / 'inductor-cache')
+    defaults = inspect.signature(bootstrap).parameters
+    require(defaults['n_resamples'].default == 9999 and defaults['confidence_level'].default == 0.95
+            and defaults['method'].default == 'BCa', 'Installed SciPy defaults differ')
+    write_json(evidence / 'analysis-execution-record.json', {
+        'recorded_before_computation_at': now(), 'status_at_recording': 'analysis planned; no estimates computed yet',
+        'adapter_byte_sha256': sha(SCRIPT), 'source_inventory_byte_sha256': sha(evidence / 'source-inventory-before.json'),
+        'analysis_argv': [str(PYTHON), '-B', str(SCRIPT), '--out', str(out)],
+        'analysis_command': shlex.join([str(PYTHON), '-B', str(SCRIPT), '--out', str(out)]),
+        'cwd': str(IMPLEMENTATION), 'analysis_runtime': runtime(), 'scipy_version': scipy.__version__,
+        'analysis_thread_environment': {key: os.environ[key] for key in ('OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS')},
+        'validation_argv': validation_command, 'validation_command': shlex.join(validation_command),
+        'validation_runtime': freeze['runtime'], 'validation_environment': validation_env,
+        'runtime_split_reason': 'Frozen validation checks saved execution 12/24; bootstrap and aggregation use 1/1. No scorer or runtime check changed.',
+        'planned_calls': {'validate_completed_artifact': 24, 'audit_renderer_additional_final_validations': 13,
+                          'summarize_condition': 13, 'compare_conditions_direct': 7, 'compare_random_controls': 4,
+                          'total_condition_contrasts_including_control_API': 15, 'bootstrap_resamples_each_available_interval': 9999},
+        'bootstrap_seed': 42, 'confidence_level': 0.95, 'bootstrap_method': 'BCa',
+        'harmless_estimand': 'equal semantic-group mean of binary refusal proxy; paired groups resampled',
+        'mmlu_estimand': 'equal subject mean accuracy; paired item differences resampled within each fixed subject',
+        'direction_contract': 'increase for all twelve real-baseline/real-random contrasts; domain-pooled descriptive support suppressed',
+        'model_calls': 0, 'new_labels': 0, 'git_before': states,
+        'validation_scope': 'all 11 development and all 13 final complete panels; frozen seal/rank/dose/tensors/code/environment',
+        'model_snapshot_scope': 'saved pre/post descriptors checked; model weights neither opened nor rehashed'})
+    print('Starting unchanged frozen validation (saved Torch 12/24); analysis remains one thread.', flush=True)
+    subprocess.run(validation_command, check=True, cwd=IMPLEMENTATION, env=validation_env)
+    validation = read(evidence / 'validation.json')
+    check_unchanged(inventory)
+    require(validation['source_inventory_byte_sha256'] == sha(evidence / 'source-inventory-before.json'), 'Validation inventory binding differs')
+    ledger = read(RUNS / 'ledger.json')
+    artifacts, validated = {}, {}
+    for spec in final_specs(ledger['dose_freeze']['doses']):
+        item = validation['conditions'][spec.condition_id]
+        path = Path(item['path'])
+        require(sha(path) == item['byte_sha256'], 'Validated input changed before analysis')
+        artifacts[spec.condition_id] = read_analysis_artifact(path)
+        validated[spec.condition_id] = item
+    bind_conditions(artifacts, ledger['dose_freeze']['doses'], validated)
+    manifest = load_harmless_manifest()['items']
+    summaries(evidence, artifacts, manifest)
+    contrasts(evidence, artifacts, manifest)
+    check_unchanged(inventory)
+    after = {name: git_state(root) for name, root in (('implementation', IMPLEMENTATION), ('planning', PLANNING))}
+    require(after == states, 'Frozen git state changed')
+    write_json(evidence / 'analysis-completion.json', {
+        'completed_at': now(), 'all_sources_and_official_records_unchanged': True, 'git_after': after,
+        'condition_count': 13, 'contrast_count': 15, 'mmlu_subject_summary_rows': 741,
+        'mmlu_subject_contrast_rows': 855, 'model_calls': 0, 'human_labels': 'pending',
+        'analysis_runtime': runtime(), 'adapter_byte_sha256': sha(SCRIPT),
+        'source_inventory_byte_sha256': sha(evidence / 'source-inventory-before.json')})
+    write_table(evidence, 'source-inventory', inventory)
+    with (evidence / 'SHA256SUMS').open('x') as stream:
+        for path in sorted(evidence.iterdir()):
+            if path.is_file() and path.name != 'SHA256SUMS':
+                stream.write(f'{sha(path)}  {path.name}\n')
+    print('Complete: 13 final conditions, 15 frozen contrasts; private audit labels remain blank.', flush=True)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--phase', choices=('analyze', 'validate-audit'), default='analyze')
+    parser.add_argument('--out', type=Path, default=ASSIGNED)
+    args = parser.parse_args()
+    out = args.out.resolve()
+    require(out == ASSIGNED or out.is_relative_to(ASSIGNED), 'Output must stay within assigned author scratch')
+    require(Path.cwd().resolve() == IMPLEMENTATION, 'Run with the frozen implementation cwd')
+    require(os.environ.get('PYTHONDONTWRITEBYTECODE') == '1', 'Disable bytecode writes')
+    require(Path(harmless_results.__file__).resolve().is_relative_to(IMPLEMENTATION)
+            and Path(harmless_audit.__file__).resolve().is_relative_to(IMPLEMENTATION), 'Analysis import resolution differs')
+    out.mkdir(parents=True, exist_ok=True)
+    if args.phase == 'validate-audit':
+        validate_and_audit(out)
+    else:
+        analyze(out)
+
+
+if __name__ == '__main__':
+    main()

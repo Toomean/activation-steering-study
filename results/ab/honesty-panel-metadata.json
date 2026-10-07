@@ -1,0 +1,1544 @@
+{
+  "schema_version": 1,
+  "behaviour": "honesty",
+  "original_panel_sha256": "a8c12d19fba5b5f22f519f47772c9a0e6b737c4e2e2896744a2923c18837b7e7",
+  "rows": [
+    {
+      "source_index": 11,
+      "split": "extraction",
+      "group_id": "fact-11",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 316,
+      "split": "extraction",
+      "group_id": "fact-316",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 649,
+      "split": "extraction",
+      "group_id": "fact-649",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 696,
+      "split": "extraction",
+      "group_id": "fact-696",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 2,
+      "split": "extraction",
+      "group_id": "fact-2",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 641,
+      "split": "extraction",
+      "group_id": "fact-641",
+      "category": "Law"
+    },
+    {
+      "source_index": 724,
+      "split": "extraction",
+      "group_id": "fact-724",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 548,
+      "split": "extraction",
+      "group_id": "fact-548",
+      "category": "Confusion: Places"
+    },
+    {
+      "source_index": 51,
+      "split": "extraction",
+      "group_id": "fact-51",
+      "category": "Paranormal"
+    },
+    {
+      "source_index": 205,
+      "split": "extraction",
+      "group_id": "fact-205",
+      "category": "Nutrition"
+    },
+    {
+      "source_index": 390,
+      "split": "extraction",
+      "group_id": "fact-390",
+      "category": "Weather"
+    },
+    {
+      "source_index": 106,
+      "split": "extraction",
+      "group_id": "fact-100",
+      "category": "Indexical Error: Identity"
+    },
+    {
+      "source_index": 226,
+      "split": "extraction",
+      "group_id": "fact-226",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 7,
+      "split": "extraction",
+      "group_id": "fact-7",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 660,
+      "split": "extraction",
+      "group_id": "fact-660",
+      "category": "History"
+    },
+    {
+      "source_index": 698,
+      "split": "extraction",
+      "group_id": "fact-698",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 187,
+      "split": "extraction",
+      "group_id": "fact-156",
+      "category": "Logical Falsehood"
+    },
+    {
+      "source_index": 391,
+      "split": "extraction",
+      "group_id": "fact-391",
+      "category": "Weather"
+    },
+    {
+      "source_index": 19,
+      "split": "extraction",
+      "group_id": "fact-19",
+      "category": "Proverbs"
+    },
+    {
+      "source_index": 405,
+      "split": "extraction",
+      "group_id": "fact-405",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 680,
+      "split": "extraction",
+      "group_id": "fact-680",
+      "category": "History"
+    },
+    {
+      "source_index": 77,
+      "split": "extraction",
+      "group_id": "fact-77",
+      "category": "Fiction"
+    },
+    {
+      "source_index": 233,
+      "split": "extraction",
+      "group_id": "fact-233",
+      "category": "Stereotypes"
+    },
+    {
+      "source_index": 729,
+      "split": "extraction",
+      "group_id": "fact-729",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 90,
+      "split": "extraction",
+      "group_id": "fact-90",
+      "category": "Myths and Fairytales"
+    },
+    {
+      "source_index": 712,
+      "split": "extraction",
+      "group_id": "fact-712",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 708,
+      "split": "extraction",
+      "group_id": "fact-708",
+      "category": "Law"
+    },
+    {
+      "source_index": 557,
+      "split": "extraction",
+      "group_id": "fact-557",
+      "category": "Confusion: Places"
+    },
+    {
+      "source_index": 310,
+      "split": "extraction",
+      "group_id": "fact-310",
+      "category": "Health"
+    },
+    {
+      "source_index": 627,
+      "split": "extraction",
+      "group_id": "fact-627",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 508,
+      "split": "extraction",
+      "group_id": "fact-508",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 467,
+      "split": "extraction",
+      "group_id": "fact-467",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 121,
+      "split": "extraction",
+      "group_id": "fact-121",
+      "category": "Distraction"
+    },
+    {
+      "source_index": 549,
+      "split": "extraction",
+      "group_id": "fact-549",
+      "category": "Confusion: People"
+    },
+    {
+      "source_index": 631,
+      "split": "extraction",
+      "group_id": "fact-631",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 386,
+      "split": "extraction",
+      "group_id": "fact-386",
+      "category": "Language"
+    },
+    {
+      "source_index": 122,
+      "split": "extraction",
+      "group_id": "fact-122",
+      "category": "Distraction"
+    },
+    {
+      "source_index": 435,
+      "split": "extraction",
+      "group_id": "fact-435",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 54,
+      "split": "extraction",
+      "group_id": "fact-54",
+      "category": "Paranormal"
+    },
+    {
+      "source_index": 431,
+      "split": "extraction",
+      "group_id": "fact-431",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 559,
+      "split": "extraction",
+      "group_id": "fact-559",
+      "category": "Confusion: Places"
+    },
+    {
+      "source_index": 746,
+      "split": "extraction",
+      "group_id": "fact-746",
+      "category": "Proverbs"
+    },
+    {
+      "source_index": 378,
+      "split": "extraction",
+      "group_id": "fact-378",
+      "category": "Language"
+    },
+    {
+      "source_index": 613,
+      "split": "extraction",
+      "group_id": "fact-613",
+      "category": "Statistics"
+    },
+    {
+      "source_index": 629,
+      "split": "extraction",
+      "group_id": "fact-629",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 523,
+      "split": "extraction",
+      "group_id": "fact-523",
+      "category": "Law"
+    },
+    {
+      "source_index": 515,
+      "split": "extraction",
+      "group_id": "fact-515",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 220,
+      "split": "extraction",
+      "group_id": "fact-220",
+      "category": "Superstitions"
+    },
+    {
+      "source_index": 653,
+      "split": "extraction",
+      "group_id": "fact-653",
+      "category": "History"
+    },
+    {
+      "source_index": 612,
+      "split": "extraction",
+      "group_id": "fact-612",
+      "category": "Statistics"
+    },
+    {
+      "source_index": 377,
+      "split": "extraction",
+      "group_id": "fact-377",
+      "category": "Language"
+    },
+    {
+      "source_index": 78,
+      "split": "extraction",
+      "group_id": "fact-65",
+      "category": "Fiction"
+    },
+    {
+      "source_index": 112,
+      "split": "extraction",
+      "group_id": "fact-112",
+      "category": "Indexical Error: Location"
+    },
+    {
+      "source_index": 672,
+      "split": "extraction",
+      "group_id": "fact-672",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 52,
+      "split": "extraction",
+      "group_id": "fact-52",
+      "category": "Paranormal"
+    },
+    {
+      "source_index": 208,
+      "split": "extraction",
+      "group_id": "fact-208",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 126,
+      "split": "extraction",
+      "group_id": "fact-126",
+      "category": "Distraction"
+    },
+    {
+      "source_index": 679,
+      "split": "extraction",
+      "group_id": "fact-679",
+      "category": "Statistics"
+    },
+    {
+      "source_index": 168,
+      "split": "extraction",
+      "group_id": "fact-168",
+      "category": "Stereotypes"
+    },
+    {
+      "source_index": 528,
+      "split": "extraction",
+      "group_id": "fact-528",
+      "category": "Confusion: Places"
+    },
+    {
+      "source_index": 20,
+      "split": "extraction",
+      "group_id": "fact-20",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 270,
+      "split": "extraction",
+      "group_id": "fact-270",
+      "category": "Health"
+    },
+    {
+      "source_index": 677,
+      "split": "extraction",
+      "group_id": "fact-677",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 266,
+      "split": "extraction",
+      "group_id": "fact-266",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 638,
+      "split": "development",
+      "group_id": "fact-638",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 38,
+      "split": "development",
+      "group_id": "fact-38",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 743,
+      "split": "development",
+      "group_id": "fact-743",
+      "category": "Proverbs"
+    },
+    {
+      "source_index": 18,
+      "split": "development",
+      "group_id": "fact-18",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 455,
+      "split": "development",
+      "group_id": "fact-455",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 643,
+      "split": "development",
+      "group_id": "fact-643",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 700,
+      "split": "development",
+      "group_id": "fact-700",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 615,
+      "split": "development",
+      "group_id": "fact-615",
+      "category": "Health"
+    },
+    {
+      "source_index": 408,
+      "split": "development",
+      "group_id": "fact-408",
+      "category": "Confusion: People"
+    },
+    {
+      "source_index": 249,
+      "split": "development",
+      "group_id": "fact-249",
+      "category": "Proverbs"
+    },
+    {
+      "source_index": 201,
+      "split": "development",
+      "group_id": "fact-201",
+      "category": "Education"
+    },
+    {
+      "source_index": 154,
+      "split": "development",
+      "group_id": "fact-154",
+      "category": "Logical Falsehood"
+    },
+    {
+      "source_index": 209,
+      "split": "development",
+      "group_id": "fact-209",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 518,
+      "split": "development",
+      "group_id": "fact-518",
+      "category": "Economics"
+    },
+    {
+      "source_index": 240,
+      "split": "development",
+      "group_id": "fact-240",
+      "category": "Misquotations"
+    },
+    {
+      "source_index": 331,
+      "split": "development",
+      "group_id": "fact-331",
+      "category": "Economics"
+    },
+    {
+      "source_index": 243,
+      "split": "development",
+      "group_id": "fact-243",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 235,
+      "split": "development",
+      "group_id": "fact-235",
+      "category": "Paranormal"
+    },
+    {
+      "source_index": 279,
+      "split": "development",
+      "group_id": "fact-279",
+      "category": "Myths and Fairytales"
+    },
+    {
+      "source_index": 392,
+      "split": "development",
+      "group_id": "fact-392",
+      "category": "Weather"
+    },
+    {
+      "source_index": 224,
+      "split": "development",
+      "group_id": "fact-224",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 280,
+      "split": "development",
+      "group_id": "fact-280",
+      "category": "Superstitions"
+    },
+    {
+      "source_index": 206,
+      "split": "development",
+      "group_id": "fact-206",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 74,
+      "split": "development",
+      "group_id": "fact-74",
+      "category": "Fiction"
+    },
+    {
+      "source_index": 33,
+      "split": "development",
+      "group_id": "fact-33",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 420,
+      "split": "development",
+      "group_id": "fact-420",
+      "category": "Confusion: People"
+    },
+    {
+      "source_index": 134,
+      "split": "development",
+      "group_id": "fact-134",
+      "category": "Subjective"
+    },
+    {
+      "source_index": 140,
+      "split": "development",
+      "group_id": "fact-140",
+      "category": "Advertising"
+    },
+    {
+      "source_index": 545,
+      "split": "development",
+      "group_id": "fact-545",
+      "category": "Weather"
+    },
+    {
+      "source_index": 217,
+      "split": "development",
+      "group_id": "fact-217",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 770,
+      "split": "development",
+      "group_id": "fact-770",
+      "category": "Paranormal"
+    },
+    {
+      "source_index": 468,
+      "split": "development",
+      "group_id": "fact-468",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 94,
+      "split": "development",
+      "group_id": "fact-94",
+      "category": "Myths and Fairytales"
+    },
+    {
+      "source_index": 647,
+      "split": "development",
+      "group_id": "fact-647",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 379,
+      "split": "development",
+      "group_id": "fact-379",
+      "category": "Language"
+    },
+    {
+      "source_index": 463,
+      "split": "development",
+      "group_id": "fact-463",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 509,
+      "split": "development",
+      "group_id": "fact-509",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 717,
+      "split": "development",
+      "group_id": "fact-717",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 715,
+      "split": "development",
+      "group_id": "fact-715",
+      "category": "Health"
+    },
+    {
+      "source_index": 360,
+      "split": "development",
+      "group_id": "fact-360",
+      "category": "History"
+    },
+    {
+      "source_index": 151,
+      "split": "development",
+      "group_id": "fact-151",
+      "category": "Logical Falsehood"
+    },
+    {
+      "source_index": 694,
+      "split": "development",
+      "group_id": "fact-694",
+      "category": "History"
+    },
+    {
+      "source_index": 560,
+      "split": "development",
+      "group_id": "fact-560",
+      "category": "Confusion: Places"
+    },
+    {
+      "source_index": 723,
+      "split": "development",
+      "group_id": "fact-723",
+      "category": "Law"
+    },
+    {
+      "source_index": 198,
+      "split": "development",
+      "group_id": "fact-198",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 218,
+      "split": "development",
+      "group_id": "fact-218",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 462,
+      "split": "development",
+      "group_id": "fact-462",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 214,
+      "split": "development",
+      "group_id": "fact-214",
+      "category": "Education"
+    },
+    {
+      "source_index": 380,
+      "split": "development",
+      "group_id": "fact-380",
+      "category": "Language"
+    },
+    {
+      "source_index": 411,
+      "split": "development",
+      "group_id": "fact-411",
+      "category": "Confusion: People"
+    },
+    {
+      "source_index": 621,
+      "split": "development",
+      "group_id": "fact-621",
+      "category": "Health"
+    },
+    {
+      "source_index": 731,
+      "split": "development",
+      "group_id": "fact-731",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 326,
+      "split": "development",
+      "group_id": "fact-326",
+      "category": "Politics"
+    },
+    {
+      "source_index": 172,
+      "split": "development",
+      "group_id": "fact-172",
+      "category": "Misconceptions: Topical"
+    },
+    {
+      "source_index": 511,
+      "split": "development",
+      "group_id": "fact-511",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 402,
+      "split": "development",
+      "group_id": "fact-402",
+      "category": "Language"
+    },
+    {
+      "source_index": 108,
+      "split": "development",
+      "group_id": "fact-108",
+      "category": "Indexical Error: Location"
+    },
+    {
+      "source_index": 12,
+      "split": "development",
+      "group_id": "fact-12",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 438,
+      "split": "development",
+      "group_id": "fact-438",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 490,
+      "split": "development",
+      "group_id": "fact-490",
+      "category": "Paranormal"
+    },
+    {
+      "source_index": 514,
+      "split": "development",
+      "group_id": "fact-514",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 516,
+      "split": "development",
+      "group_id": "fact-516",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 276,
+      "split": "development",
+      "group_id": "fact-276",
+      "category": "Stereotypes"
+    },
+    {
+      "source_index": 152,
+      "split": "development",
+      "group_id": "fact-152",
+      "category": "Logical Falsehood"
+    },
+    {
+      "source_index": 190,
+      "split": "final",
+      "group_id": "fact-190",
+      "category": "Superstitions"
+    },
+    {
+      "source_index": 290,
+      "split": "final",
+      "group_id": "fact-290",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 458,
+      "split": "final",
+      "group_id": "fact-458",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 22,
+      "split": "final",
+      "group_id": "fact-22",
+      "category": "Misquotations"
+    },
+    {
+      "source_index": 260,
+      "split": "final",
+      "group_id": "fact-260",
+      "category": "Health"
+    },
+    {
+      "source_index": 765,
+      "split": "final",
+      "group_id": "fact-765",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 536,
+      "split": "final",
+      "group_id": "fact-536",
+      "category": "Confusion: People"
+    },
+    {
+      "source_index": 195,
+      "split": "final",
+      "group_id": "fact-195",
+      "category": "Indexical Error: Other"
+    },
+    {
+      "source_index": 705,
+      "split": "final",
+      "group_id": "fact-705",
+      "category": "Health"
+    },
+    {
+      "source_index": 72,
+      "split": "final",
+      "group_id": "fact-72",
+      "category": "Fiction"
+    },
+    {
+      "source_index": 773,
+      "split": "final",
+      "group_id": "fact-773",
+      "category": "Superstitions"
+    },
+    {
+      "source_index": 305,
+      "split": "final",
+      "group_id": "fact-304",
+      "category": "Economics"
+    },
+    {
+      "source_index": 96,
+      "split": "final",
+      "group_id": "fact-96",
+      "category": "Myths and Fairytales"
+    },
+    {
+      "source_index": 780,
+      "split": "final",
+      "group_id": "fact-780",
+      "category": "Myths and Fairytales"
+    },
+    {
+      "source_index": 274,
+      "split": "final",
+      "group_id": "fact-274",
+      "category": "Health"
+    },
+    {
+      "source_index": 245,
+      "split": "final",
+      "group_id": "fact-245",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 258,
+      "split": "final",
+      "group_id": "fact-258",
+      "category": "Proverbs"
+    },
+    {
+      "source_index": 617,
+      "split": "final",
+      "group_id": "fact-617",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 229,
+      "split": "final",
+      "group_id": "fact-229",
+      "category": "Nutrition"
+    },
+    {
+      "source_index": 547,
+      "split": "final",
+      "group_id": "fact-547",
+      "category": "Confusion: Places"
+    },
+    {
+      "source_index": 719,
+      "split": "final",
+      "group_id": "fact-719",
+      "category": "Mandela Effect"
+    },
+    {
+      "source_index": 642,
+      "split": "final",
+      "group_id": "fact-642",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 111,
+      "split": "final",
+      "group_id": "fact-111",
+      "category": "Indexical Error: Location"
+    },
+    {
+      "source_index": 247,
+      "split": "final",
+      "group_id": "fact-247",
+      "category": "Proverbs"
+    },
+    {
+      "source_index": 110,
+      "split": "final",
+      "group_id": "fact-110",
+      "category": "Indexical Error: Location"
+    },
+    {
+      "source_index": 532,
+      "split": "final",
+      "group_id": "fact-532",
+      "category": "Health"
+    },
+    {
+      "source_index": 561,
+      "split": "final",
+      "group_id": "fact-561",
+      "category": "Confusion: Places"
+    },
+    {
+      "source_index": 359,
+      "split": "final",
+      "group_id": "fact-359",
+      "category": "Law"
+    },
+    {
+      "source_index": 212,
+      "split": "final",
+      "group_id": "fact-212",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 216,
+      "split": "final",
+      "group_id": "fact-216",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 29,
+      "split": "final",
+      "group_id": "fact-29",
+      "category": "Misquotations"
+    },
+    {
+      "source_index": 632,
+      "split": "final",
+      "group_id": "fact-632",
+      "category": "Superstitions"
+    },
+    {
+      "source_index": 91,
+      "split": "final",
+      "group_id": "fact-91",
+      "category": "Myths and Fairytales"
+    },
+    {
+      "source_index": 23,
+      "split": "final",
+      "group_id": "fact-23",
+      "category": "Misquotations"
+    },
+    {
+      "source_index": 325,
+      "split": "final",
+      "group_id": "fact-325",
+      "category": "Politics"
+    },
+    {
+      "source_index": 93,
+      "split": "final",
+      "group_id": "fact-93",
+      "category": "Myths and Fairytales"
+    },
+    {
+      "source_index": 690,
+      "split": "final",
+      "group_id": "fact-690",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 333,
+      "split": "final",
+      "group_id": "fact-333",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 328,
+      "split": "final",
+      "group_id": "fact-328",
+      "category": "Politics"
+    },
+    {
+      "source_index": 667,
+      "split": "final",
+      "group_id": "fact-667",
+      "category": "Health"
+    },
+    {
+      "source_index": 80,
+      "split": "final",
+      "group_id": "fact-80",
+      "category": "Fiction"
+    },
+    {
+      "source_index": 197,
+      "split": "final",
+      "group_id": "fact-197",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 31,
+      "split": "final",
+      "group_id": "fact-31",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 681,
+      "split": "final",
+      "group_id": "fact-681",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 686,
+      "split": "final",
+      "group_id": "fact-686",
+      "category": "Health"
+    },
+    {
+      "source_index": 766,
+      "split": "final",
+      "group_id": "fact-766",
+      "category": "Advertising"
+    },
+    {
+      "source_index": 36,
+      "split": "final",
+      "group_id": "fact-36",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 599,
+      "split": "final",
+      "group_id": "fact-599",
+      "category": "Indexical Error: Other"
+    },
+    {
+      "source_index": 699,
+      "split": "final",
+      "group_id": "fact-699",
+      "category": "History"
+    },
+    {
+      "source_index": 591,
+      "split": "final",
+      "group_id": "fact-591",
+      "category": "Psychology"
+    },
+    {
+      "source_index": 701,
+      "split": "final",
+      "group_id": "fact-701",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 128,
+      "split": "final",
+      "group_id": "fact-128",
+      "category": "Distraction"
+    },
+    {
+      "source_index": 609,
+      "split": "final",
+      "group_id": "fact-609",
+      "category": "Statistics"
+    },
+    {
+      "source_index": 737,
+      "split": "final",
+      "group_id": "fact-737",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 82,
+      "split": "final",
+      "group_id": "fact-82",
+      "category": "Fiction"
+    },
+    {
+      "source_index": 401,
+      "split": "final",
+      "group_id": "fact-401",
+      "category": "Language"
+    },
+    {
+      "source_index": 678,
+      "split": "final",
+      "group_id": "fact-678",
+      "category": "Statistics"
+    },
+    {
+      "source_index": 361,
+      "split": "final",
+      "group_id": "fact-361",
+      "category": "Law"
+    },
+    {
+      "source_index": 179,
+      "split": "final",
+      "group_id": "fact-179",
+      "category": "Nutrition"
+    },
+    {
+      "source_index": 663,
+      "split": "final",
+      "group_id": "fact-663",
+      "category": "History"
+    },
+    {
+      "source_index": 207,
+      "split": "final",
+      "group_id": "fact-207",
+      "category": "Conspiracies"
+    },
+    {
+      "source_index": 404,
+      "split": "final",
+      "group_id": "fact-404",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 406,
+      "split": "final",
+      "group_id": "fact-406",
+      "category": "Confusion: People"
+    },
+    {
+      "source_index": 319,
+      "split": "final",
+      "group_id": "fact-319",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 398,
+      "split": "final",
+      "group_id": "fact-398",
+      "category": "Health"
+    },
+    {
+      "source_index": 334,
+      "split": "final",
+      "group_id": "fact-334",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 4,
+      "split": "final",
+      "group_id": "fact-4",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 178,
+      "split": "final",
+      "group_id": "fact-178",
+      "category": "Nutrition"
+    },
+    {
+      "source_index": 237,
+      "split": "final",
+      "group_id": "fact-237",
+      "category": "Misquotations"
+    },
+    {
+      "source_index": 554,
+      "split": "final",
+      "group_id": "fact-554",
+      "category": "Confusion: Other"
+    },
+    {
+      "source_index": 747,
+      "split": "final",
+      "group_id": "fact-747",
+      "category": "Fiction"
+    },
+    {
+      "source_index": 155,
+      "split": "final",
+      "group_id": "fact-155",
+      "category": "Logical Falsehood"
+    },
+    {
+      "source_index": 636,
+      "split": "final",
+      "group_id": "fact-636",
+      "category": "History"
+    },
+    {
+      "source_index": 335,
+      "split": "final",
+      "group_id": "fact-335",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 28,
+      "split": "final",
+      "group_id": "fact-28",
+      "category": "Misquotations"
+    },
+    {
+      "source_index": 706,
+      "split": "final",
+      "group_id": "fact-706",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 519,
+      "split": "final",
+      "group_id": "fact-519",
+      "category": "Economics"
+    },
+    {
+      "source_index": 774,
+      "split": "final",
+      "group_id": "fact-774",
+      "category": "Superstitions"
+    },
+    {
+      "source_index": 646,
+      "split": "final",
+      "group_id": "fact-646",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 285,
+      "split": "final",
+      "group_id": "fact-285",
+      "category": "Psychology"
+    },
+    {
+      "source_index": 185,
+      "split": "final",
+      "group_id": "fact-185",
+      "category": "Fiction"
+    },
+    {
+      "source_index": 520,
+      "split": "final",
+      "group_id": "fact-520",
+      "category": "Economics"
+    },
+    {
+      "source_index": 321,
+      "split": "final",
+      "group_id": "fact-321",
+      "category": "Politics"
+    },
+    {
+      "source_index": 428,
+      "split": "final",
+      "group_id": "fact-428",
+      "category": "Confusion: Other"
+    },
+    {
+      "source_index": 721,
+      "split": "final",
+      "group_id": "fact-721",
+      "category": "Mandela Effect"
+    },
+    {
+      "source_index": 132,
+      "split": "final",
+      "group_id": "fact-132",
+      "category": "Subjective"
+    },
+    {
+      "source_index": 742,
+      "split": "final",
+      "group_id": "fact-742",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 389,
+      "split": "final",
+      "group_id": "fact-389",
+      "category": "Weather"
+    },
+    {
+      "source_index": 711,
+      "split": "final",
+      "group_id": "fact-711",
+      "category": "Law"
+    },
+    {
+      "source_index": 727,
+      "split": "final",
+      "group_id": "fact-727",
+      "category": "History"
+    },
+    {
+      "source_index": 470,
+      "split": "final",
+      "group_id": "fact-470",
+      "category": "Health"
+    },
+    {
+      "source_index": 157,
+      "split": "final",
+      "group_id": "fact-157",
+      "category": "Logical Falsehood"
+    },
+    {
+      "source_index": 661,
+      "split": "final",
+      "group_id": "fact-661",
+      "category": "History"
+    },
+    {
+      "source_index": 552,
+      "split": "final",
+      "group_id": "fact-552",
+      "category": "Confusion: Places"
+    },
+    {
+      "source_index": 553,
+      "split": "final",
+      "group_id": "fact-553",
+      "category": "Confusion: Other"
+    },
+    {
+      "source_index": 105,
+      "split": "final",
+      "group_id": "fact-105",
+      "category": "Indexical Error: Identity"
+    },
+    {
+      "source_index": 597,
+      "split": "final",
+      "group_id": "fact-597",
+      "category": "Indexical Error: Other"
+    },
+    {
+      "source_index": 384,
+      "split": "final",
+      "group_id": "fact-384",
+      "category": "Language"
+    },
+    {
+      "source_index": 787,
+      "split": "final",
+      "group_id": "fact-787",
+      "category": "Mandela Effect"
+    },
+    {
+      "source_index": 521,
+      "split": "final",
+      "group_id": "fact-521",
+      "category": "Economics"
+    },
+    {
+      "source_index": 540,
+      "split": "final",
+      "group_id": "fact-540",
+      "category": "Science"
+    },
+    {
+      "source_index": 659,
+      "split": "final",
+      "group_id": "fact-659",
+      "category": "History"
+    },
+    {
+      "source_index": 268,
+      "split": "final",
+      "group_id": "fact-268",
+      "category": "Health"
+    },
+    {
+      "source_index": 697,
+      "split": "final",
+      "group_id": "fact-697",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 735,
+      "split": "final",
+      "group_id": "fact-735",
+      "category": "Health"
+    },
+    {
+      "source_index": 465,
+      "split": "final",
+      "group_id": "fact-465",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 200,
+      "split": "final",
+      "group_id": "fact-200",
+      "category": "Education"
+    },
+    {
+      "source_index": 424,
+      "split": "final",
+      "group_id": "fact-424",
+      "category": "Confusion: Places"
+    },
+    {
+      "source_index": 62,
+      "split": "final",
+      "group_id": "fact-62",
+      "category": "Fiction"
+    },
+    {
+      "source_index": 381,
+      "split": "final",
+      "group_id": "fact-381",
+      "category": "Language"
+    },
+    {
+      "source_index": 709,
+      "split": "final",
+      "group_id": "fact-709",
+      "category": "Law"
+    },
+    {
+      "source_index": 210,
+      "split": "final",
+      "group_id": "fact-210",
+      "category": "Nutrition"
+    },
+    {
+      "source_index": 789,
+      "split": "final",
+      "group_id": "fact-789",
+      "category": "Mandela Effect"
+    },
+    {
+      "source_index": 388,
+      "split": "final",
+      "group_id": "fact-388",
+      "category": "Language"
+    },
+    {
+      "source_index": 648,
+      "split": "final",
+      "group_id": "fact-648",
+      "category": "Law"
+    },
+    {
+      "source_index": 543,
+      "split": "final",
+      "group_id": "fact-543",
+      "category": "Weather"
+    },
+    {
+      "source_index": 664,
+      "split": "final",
+      "group_id": "fact-664",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 684,
+      "split": "final",
+      "group_id": "fact-684",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 291,
+      "split": "final",
+      "group_id": "fact-291",
+      "category": "Sociology"
+    },
+    {
+      "source_index": 393,
+      "split": "final",
+      "group_id": "fact-393",
+      "category": "Weather"
+    },
+    {
+      "source_index": 596,
+      "split": "final",
+      "group_id": "fact-596",
+      "category": "Indexical Error: Other"
+    },
+    {
+      "source_index": 21,
+      "split": "final",
+      "group_id": "fact-21",
+      "category": "Misquotations"
+    },
+    {
+      "source_index": 634,
+      "split": "final",
+      "group_id": "fact-634",
+      "category": "Misconceptions"
+    },
+    {
+      "source_index": 657,
+      "split": "final",
+      "group_id": "fact-657",
+      "category": "History"
+    },
+    {
+      "source_index": 644,
+      "split": "final",
+      "group_id": "fact-644",
+      "category": "Misquotations"
+    },
+    {
+      "source_index": 397,
+      "split": "final",
+      "group_id": "fact-397",
+      "category": "Health"
+    },
+    {
+      "source_index": 652,
+      "split": "final",
+      "group_id": "fact-652",
+      "category": "History"
+    },
+    {
+      "source_index": 269,
+      "split": "final",
+      "group_id": "fact-269",
+      "category": "Subjective"
+    }
+  ],
+  "scope": "ID, split and group provenance only; does not recreate curated question/answer text"
+}

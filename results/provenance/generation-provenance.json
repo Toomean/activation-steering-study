@@ -1,0 +1,91 @@
+{
+  "conclusion": "Source/provenance inference for the 21 completed attempts in the 2026-10-06 09:51:54 UTC snapshot: positive harmless generation inherited repetition_penalty=1.1 through the shared baseline, real and random generation paths. Running, future and unrun conditions were not observed by this completed-attempt check.",
+  "evidence_level": "Reproducible source/provenance inference; campaign result runtime does not directly instrument the resolved per-call generation config.",
+  "repetition_penalty": 1.1,
+  "do_sample": false,
+  "max_new_tokens": 256,
+  "checkpoint_path": "external/model-cache/hub/models--Qwen--Qwen2.5-1.5B-Instruct/snapshots/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/generation_config.json",
+  "checkpoint_byte_sha256": "e558847a8b4402616f1273797b015104dc266fe4b520056fca88823ba8f8ebe6",
+  "model_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+  "model_snapshot_pre_post_identical_completed_attempts": 21,
+  "model_snapshot_weights_rehashed_in_this_export": false,
+  "installed_transformers_version": "5.17.0",
+  "installed_source_hashes_observed_now": true,
+  "contemporaneous_installed_package_source_hashes": false,
+  "scoring_scope": "MMLU, direct prompt KL and response NLL do not apply the generation repetition processor. Response NLL/perplexity can depend indirectly on the completion selected during penalized decoding.",
+  "historical_probe_path": "historical/positive-protocol/assessments/a3/iterations/iteration-04-data/freeze-2026-10-01/timing/resolved-generation.json",
+  "historical_probe_byte_sha256": "3ac0ca24e2eea5fe5ae226080fe8ab33c367a4672e3e7fea018ff6fd721b6f32",
+  "historical_probe_repetition_penalty": 1.1,
+  "historical_probe_scope": "October 1 saved-config reconstruction only; not October 5-6 campaign-object instrumentation.",
+  "independent_metadata_probe_path": "external/repetition-config-probe.json",
+  "independent_metadata_probe_byte_sha256": "fc258f3ae592097a6fbf9f2e552efa85cdb53708b9d750243d426f5d5eab54ef",
+  "independent_metadata_probe_scope": "Post-run metadata and synthetic-logit reconstruction after explicit generation-configuration assignment; exercises configuration resolution and logits processing, not the integrated model-loading leg. No target model load or forward; not contemporaneous campaign-object instrumentation.",
+  "trace": [
+    {
+      "path": "historical/positive-code/src/activation_steering_study/utils/qwen.py",
+      "lines": "16-27",
+      "byte_sha256": "5d331d88566d72007d381fb3439587d8aa771d3cd1d1f66c96d02acce09cfa21",
+      "meaning": "Pinned AutoModelForCausalLM.from_pretrained without a generation_config override."
+    },
+    {
+      "path": "historical/positive-code/src/activation_steering_study/steering/harmless_execution.py",
+      "lines": "471-500",
+      "byte_sha256": "e3fe527567d4611454c6c95db6e1039f636a59940eb6ce8fa7f871a7638b657a",
+      "meaning": "Load pinned model; evaluate with block14/max_new_tokens256; result runtime omits generation configuration."
+    },
+    {
+      "path": "historical/positive-code/src/activation_steering_study/steering/harmless_run.py",
+      "lines": "132-149",
+      "byte_sha256": "7ee2aef9f303503f44a314ea5b0bb4422aadf4fb6f8beac0a9e4d6bdd943f4ee",
+      "meaning": "Pass max_new_tokens256 and do_sample=False; quality uses direct forwards after generation."
+    },
+    {
+      "path": "historical/positive-code/src/activation_steering_study/steering/pilot.py",
+      "lines": "48-62",
+      "byte_sha256": "c1cb978a7e6e1ea87cf34c42d6e0d84ffe684ab53a943f682437419f9b67a1a2",
+      "meaning": "Baseline model.generate and steered wrapper receive those same keyword overrides."
+    },
+    {
+      "path": "historical/positive-code/src/activation_steering_study/steering/generation.py",
+      "lines": "13-23",
+      "byte_sha256": "e19ce12ef63abc38d9711cc523a8d094ec0adc17de7ce06327bf6a90f8e2c562",
+      "meaning": "Steered wrapper passes generation kwargs to model.generate and removes its hook."
+    },
+    {
+      "path": "historical/positive-code/.venv/lib/python3.14/site-packages/transformers/modeling_utils.py",
+      "lines": "4320-4339",
+      "byte_sha256": "38c2bd02ed7af229f54e2f02dae65663be7af29ed2c9498bd1c460cf60fbb62d",
+      "meaning": "from_pretrained calls model.adjust_generation_fn."
+    },
+    {
+      "path": "historical/positive-code/.venv/lib/python3.14/site-packages/transformers/generation/utils.py",
+      "lines": "514-565;1900-1940;1303-1304;3045",
+      "byte_sha256": "bb558d8676be95457126c82a32600dad206c13e4fb96b4f5d114f1f2483d7f62",
+      "meaning": "Load checkpoint GenerationConfig; inherit model values before applying explicit kwargs; instantiate/apply repetition processor."
+    },
+    {
+      "path": "historical/positive-code/.venv/lib/python3.14/site-packages/transformers/generation/configuration_utils.py",
+      "lines": "420;620",
+      "byte_sha256": "605b86a07d08dc6e3ba932e8a90b8afca867eaa29881625b04869c4a1f1f23f8",
+      "meaning": "Default placeholder is None and global fallback is1.0; checkpoint1.1 fills before fallback."
+    },
+    {
+      "path": "historical/positive-code/.venv/lib/python3.14/site-packages/transformers/generation/logits_process.py",
+      "lines": "306-322;358-375;409-412",
+      "byte_sha256": "c5b5d5666576b19e19a09b99b55806ea009dd8e999892f7a8d2d7876dbfc2002",
+      "meaning": "Decoder-only history includes prompt by default. Negative repeated-token logits multiply by1.1; positive logits divide by1.1."
+    },
+    {
+      "path": "historical/positive-code/src/activation_steering_study/evaluation/scoring.py",
+      "lines": "8-38",
+      "byte_sha256": "8b280cf557c2136df93457eb1f7ff854af0668f42974de8f977f656df3071efa",
+      "meaning": "MMLU and prompt KL obtain direct model-forward logits."
+    },
+    {
+      "path": "historical/positive-code/src/activation_steering_study/evaluation/coherence.py",
+      "lines": "19-73",
+      "byte_sha256": "0fe635553acb4db7d0d782dc4bbcf00ec7fbcd581be55e7a429dc87b53e4c50f",
+      "meaning": "Clean teacher-forced response NLL and full-vocabulary KL; no generation logits processor in these calls."
+    }
+  ]
+}

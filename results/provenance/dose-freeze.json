@@ -1,0 +1,23 @@
+{
+  "configuration_sha256": "0ea85cfe6d373bc8bfaa9b43c37911e96b01f974285486fd9ba9483054b2f276",
+  "development": {
+    "development-baseline": "959e08bd4074f0badc67317a0ffa426e4e1e138123dc04585435dfa11d6389c7",
+    "development-cyber_intrusion-real-a0p5": "6c906aa05ce8635d9d39ef22f44282fdb7fc02e6ce06986c265df858a8c1767a",
+    "development-cyber_intrusion-real-a1": "8429f9dd1b2a78f5a971438f6ad89f023cce309787ad0774847856eedfeced8e",
+    "development-cyber_intrusion-real-a2": "aa1aa079c7cb6e8e5f9fd22325eb8ddaf4c4cd122af5a26fcbd32a60c2c59b6c",
+    "development-dangerous_substances-real-a0p5": "ccf14b055179f9cef7a588362bf2e4eeed8bfa3d544a7c8aab4b16c77a2cfb0c",
+    "development-dangerous_substances-real-a1": "1f3fbd98e58cabd0c342b74daf5c927231218a9643b5aa52f04760e568012f0c",
+    "development-dangerous_substances-real-a2": "61b2933aae98732dd1012add6cc8fe04865733d19e5b3f30c23bf8a869fdfaf1",
+    "development-disinformation-real-a0p5": "a46be01c804d762fd51f9c76c36d2b36709e141838942524a26d5204beb0fa38",
+    "development-disinformation-real-a1": "3cb3179b529dc318ddaa7edbef111b966de52eb1bb70790153a2358248e66a84",
+    "development-disinformation-real-a2": "05ef210687b66e550354732e5e1d2f863635448320de49531b2c70894dfc10bb",
+    "development-pooled-real-a1": "49c085a9290a2e9461ef7c537dc7c1fc7a436e3391e3b612e1e5671478b305b3"
+  },
+  "doses": {
+    "cyber_intrusion": 1.0,
+    "dangerous_substances": 1.0,
+    "disinformation": 1.0,
+    "pooled": 1.0
+  },
+  "selection": "Exact singleton-group refusal count distance from pooled +1; ties use lower dose"
+}

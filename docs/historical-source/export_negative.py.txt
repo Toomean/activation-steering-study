@@ -1,0 +1,411 @@
+#!external/python/env python3
+"""Export the completed negative MMLU panel without inference or raw text."""
+
+import argparse
+from collections import Counter, defaultdict
+import csv
+from datetime import datetime, timezone
+import hashlib
+import importlib.metadata
+import importlib.util
+import inspect
+import json
+import os
+from pathlib import Path
+import platform
+from statistics import mean
+import subprocess
+import sys
+from types import SimpleNamespace
+from typing import Any
+
+from scipy.stats import bootstrap
+import torch
+
+from activation_steering_study.analysis import harmless_results
+from activation_steering_study.analysis.harmless_audit import json_digest
+from activation_steering_study.data import mmlu as mmlu_data
+from activation_steering_study.steering import harmless_execution as positive
+
+ASSIGNED = Path('historical/workspace')
+CORE = Path('historical/positive-code')
+CALLER_ROOT = Path('historical/negative-code')
+NEGATIVE_PLANNING = CALLER_ROOT.parent / 'planning'
+POSITIVE_PLANNING = CORE.parent / 'planning'
+RUNS = Path('unpublished/negative')
+POSITIVE_RUNS = RUNS.parent / 'positive-20261005'
+BASELINE = POSITIVE_RUNS / 'final-baseline/attempt-001/output/completed.json'
+BASELINE_SHA = 'f0278072579a4576be74d609c5cee8592f0d0785dc5e1f33c2e67f5e6a19bc0a'
+CALLER = CALLER_ROOT / 'src/activation_steering_study/steering/negative_mmlu.py'
+CALLER_SHA = 'd827f2c821381ad8b2f4d1ea190d2fae15b130589b544953a6a38ed250c049f2'
+STATS_SHA = 'bec6e5d249fe373415022c72a441f3e2a86a372ac2ee10477e693caf632a4b8d'
+FREEZE = NEGATIVE_PLANNING / 'assessments/a3/iterations/iteration-04-negative-mmlu-2026-10-06/readiness/freeze.json'
+FREEZE_SHA = '98e1968806b30c09dbed63ccc685bdaf40411ec901d065f7d30cb3872dbd7c54'
+POSITIVE_EVIDENCE = Path('historical/evidence/assessments/a3/iterations/iteration-04-positive-final-analysis-2026-10-06/author/evidence')
+SCRIPT = Path(__file__).resolve()
+ENV_KEYS = ('PYTHONPATH', 'PYTHONDONTWRITEBYTECODE', 'PYTHONPYCACHEPREFIX', 'OMP_NUM_THREADS',
+            'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'HF_HUB_OFFLINE', 'TRANSFORMERS_OFFLINE')
+
+
+def require(passed: bool, reason: str) -> None:
+    if not passed:
+        raise ValueError(reason)
+
+
+def sha(path: Path) -> str:
+    with path.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+
+def write_json(path: Path, value: Any) -> None:
+    with path.open('x', encoding='utf-8') as stream:
+        json.dump(value, stream, indent=2, ensure_ascii=False, allow_nan=False)
+        stream.write('\n')
+
+
+def write_table(out: Path, name: str, rows: list[dict[str, Any]]) -> None:
+    require(bool(rows) and all(set(row) == set(rows[0]) for row in rows), f'Invalid table: {name}')
+    require(all(type(v) in (str, bool, int, float, type(None)) for row in rows for v in row.values()),
+            f'Non-scalar table cell: {name}')
+    write_json(out / f'{name}.json', rows)
+    with (out / f'{name}.csv').open('x', newline='', encoding='utf-8') as stream:
+        writer = csv.DictWriter(stream, list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def frozen_bridges() -> tuple[Any, SimpleNamespace]:
+    """Reuse checked source, including the original within-subject BCa implementation.
+
+    The public combined endpoint requires harmless observations. These three private
+    MMLU helpers are deliberately bridged under their exact source hash instead of
+    inventing harmless rows or copying the statistical implementation.
+    """
+    require(sha(CALLER) == CALLER_SHA, 'Negative validator source differs')
+    require(Path(harmless_results.__file__).resolve() == CORE / 'src/activation_steering_study/analysis/harmless_results.py'
+            and sha(Path(harmless_results.__file__)) == STATS_SHA, 'MMLU analysis source or origin differs')
+    spec = importlib.util.spec_from_file_location('frozen_negative_mmlu', CALLER)
+    require(spec is not None, 'Cannot locate negative validator')
+    assert spec is not None
+    worker = importlib.util.module_from_spec(spec)
+    exec(compile(CALLER.read_bytes(), str(CALLER), 'exec', dont_inherit=True), worker.__dict__)
+    # Only path resolution changes in this analysis process; loader and validators
+    # execute their frozen source from the required isolated working directory.
+    mmlu_data.FINAL_SOURCE_PATH = CORE / 'data/mmlu/upstream/cais/test-00000-of-00001.parquet'
+    mmlu_data.FINAL_MANIFEST_PATH = CORE / 'data/mmlu/test-1710.json'
+    return worker, SimpleNamespace(rows=harmless_results._mmlu_rows,
+                                  subject_mean=harmless_results._subject_mean,
+                                  interval=harmless_results._mmlu_interval)
+
+
+def git_state(root: Path) -> dict[str, Any]:
+    def git(*args: str) -> str:
+        return subprocess.run(['git', '--no-optional-locks', '-C', str(root), *args], check=True,
+                              capture_output=True, text=True).stdout.strip()
+    hooks = subprocess.run(['git', '-C', str(root), 'config', '--get', 'core.hooksPath'],
+                           capture_output=True, text=True)
+    require(hooks.returncode in (0, 1), 'Cannot read hooks path')
+    return {'head': git('rev-parse', 'HEAD'), 'status': git('status', '--short', '--untracked-files=all'),
+            'latest_log': git('log', '-1', '--format=%H %s'), 'hooks_path': hooks.stdout.strip() or None}
+
+
+def source_inventory(request: dict[str, Any]) -> list[dict[str, Any]]:
+    paths = {Path(name): 'frozen request integrity input' for name in request['integrity']}
+    paths.update({path: 'negative official record' for path in RUNS.rglob('*') if path.is_file()})
+    paths.update({SCRIPT: 'analysis adapter', Path(sys.executable).resolve(): 'Python executable',
+                  CORE / '.venv/pyvenv.cfg': 'frozen environment',
+                  POSITIVE_PLANNING / 'assessments/a3/iterations/iteration-04-positive-execution-2026-10-05/readiness/freeze.json': 'positive environment freeze',
+                  POSITIVE_EVIDENCE / 'condition-summary.json': 'existing positive point estimates',
+                  POSITIVE_EVIDENCE / 'final-contrasts.json': 'existing positive point estimates',
+                  POSITIVE_EVIDENCE / 'SHA256SUMS': 'existing positive analysis checksums'})
+    for function in (bootstrap, inspect.unwrap(bootstrap)):
+        filename = inspect.getsourcefile(function)
+        require(filename is not None, 'SciPy bootstrap source is unavailable')
+        paths[Path(str(filename))] = 'actual SciPy bootstrap wrapper or unwrapped implementation'
+    for name, module in tuple(sys.modules.items()):
+        filename = getattr(module, '__file__', None)
+        if filename and name.startswith(('activation_steering_study', 'scipy.stats._resampling')):
+            paths[Path(filename).resolve()] = f'loaded source: {name}'
+    for name in ('numpy', 'scipy', 'torch', 'transformers', 'pyarrow'):
+        distribution = importlib.metadata.distribution(name)
+        for entry in distribution.files or []:
+            if entry.name in ('METADATA', 'RECORD') and '.dist-info/' in str(entry):
+                paths[Path(str(distribution.locate_file(entry)))] = f'{name} installed distribution manifest'
+    return [{'path': str(path), 'sha256': sha(path), 'size_bytes': path.stat().st_size, 'purpose': purpose}
+            for path, purpose in sorted(paths.items())]
+
+
+def check_unchanged(inventory: list[dict[str, Any]]) -> None:
+    for row in inventory:
+        path = Path(row['path'])
+        require(sha(path) == row['sha256'] and path.stat().st_size == row['size_bytes'],
+                f'Source changed: {path}')
+    require({row['path'] for row in inventory if Path(row['path']).is_relative_to(RUNS)}
+            == {str(path) for path in RUNS.rglob('*') if path.is_file()}, 'Official record membership changed')
+
+
+def bind_request(request: dict[str, Any], canonical: dict[str, Any], template: Any,
+                 index: int, worker: Any) -> None:
+    _, direction = worker.negative_direction(template, Path(canonical['tensor']), Path(canonical['reference']))
+    expected = {**canonical, 'condition_index': index, 'condition': worker.condition_metadata(template),
+                'direction': direction}
+    require(request == expected, 'Negative request dose, sign, seed, vector, runtime or source binding differs')
+
+
+def validate_inputs(worker: Any, first: dict[str, Any], states: dict[str, Any]) -> dict[str, Any]:
+    read = worker.read_json
+    require(set(first) == {'schema_version', 'configuration_sha256', 'condition_index', 'condition', 'direction',
+            'tensor', 'reference', 'dose_freeze', 'baseline', 'integrity', 'caller', 'core', 'environment',
+            'runtime', 'import_origins'} and type(first['schema_version']) is int, 'Negative request schema differs')
+    freeze, ledger, seal = read(FREEZE), read(RUNS / 'ledger.json'), read(RUNS / 'completion.json')
+    require(sha(FREEZE) == FREEZE_SHA and sha(BASELINE) == BASELINE_SHA, 'Frozen baseline or negative freeze differs')
+    baseline = read(BASELINE)
+    require(baseline['condition'] == positive.ConditionSpec('final', 'baseline').to_dict()
+            and baseline['result']['baseline'] is True and baseline['result']['alpha'] == 0
+            and baseline['result']['layer_index'] == 14
+            and baseline['provenance']['direction']['vector_sha256'] is None, 'Baseline is not hook-free final')
+    worker.validate_result({'mmlu': baseline['result']['mmlu'], 'timing_seconds': {
+        'mmlu': baseline['result']['timing_seconds']['mmlu'], 'total': baseline['result']['timing_seconds']['total']}})
+    expected_configuration = json_digest({'freeze_sha256': FREEZE_SHA, 'caller_commit': freeze['caller_commit'],
+        'planning_commit': states['negative_planning']['head'],
+        'positive_configuration': read(POSITIVE_RUNS / 'ledger.json')['configuration_sha256']})
+    require(ledger['schema_version'] == seal['schema_version'] == 1
+            and ledger['status'] == seal['status'] == 'complete'
+            and ledger['configuration_sha256'] == seal['configuration_sha256'] == expected_configuration
+            and ledger['completion_sha256'] == sha(RUNS / 'completion.json'), 'Negative campaign seal differs')
+    require(first['schema_version'] == 1 and first['condition_index'] == 0
+            and first['configuration_sha256'] == expected_configuration
+            and first['baseline'] == str(BASELINE) and first['dose_freeze'] == str(POSITIVE_RUNS / 'dose-freeze.json')
+            and first['runtime'] == baseline['provenance']['runtime'], 'Shared baseline identity or runtime differs')
+    require(first['core'] == {'root': str(CORE), 'commit': states['positive_implementation']['head']}
+            and first['caller'] == {'root': str(CALLER_ROOT), 'commit': states['negative_implementation']['head'],
+                                     'path': str(CALLER)}, 'Frozen worker identity differs')
+    positive_freeze = read(POSITIVE_PLANNING / 'assessments/a3/iterations/iteration-04-positive-execution-2026-10-05/readiness/freeze.json')
+    require(first['environment'] == positive_freeze['child_effective_environment'], 'Saved shared execution environment differs')
+    source_roots = {'implementation': CORE, 'planning': POSITIVE_PLANNING}
+    expected_integrity = {str(source_roots[item['repo']] / item['path']): item['sha256']
+                          for item in positive_freeze['inputs'].values()}
+    expected_integrity.update(freeze['positive_records'])
+    expected_integrity.update({str(CALLER): CALLER_SHA, str(FREEZE): FREEZE_SHA,
+                               freeze['launcher_path']: freeze['launcher_sha256']})
+    require(first['integrity'] == expected_integrity, 'Frozen input/source closure differs')
+    for name, digest in first['integrity'].items():
+        require(sha(Path(name)) == digest, f'Frozen integrity input differs: {name}')
+    require(all(first['integrity'].get(name) == digest for name, digest in freeze['positive_records'].items())
+            and first['integrity'].get(str(BASELINE)) == BASELINE_SHA
+            and all(name in first['integrity'] for name in (str(FREEZE), str(CALLER), first['tensor'], first['reference'])),
+            'Required source lacks its frozen hash')
+    for name, filename in first['import_origins'].items():
+        relative = Path(*name.split('.'))
+        expected = CORE / 'src' / relative
+        expected = expected / '__init__.py' if expected.is_dir() else expected.with_suffix('.py')
+        require(Path(filename).resolve() == expected and filename in first['integrity'], 'Recorded import origin differs')
+    for name, module in tuple(sys.modules.items()):
+        filename = getattr(module, '__file__', None)
+        if name.startswith('activation_steering_study') and filename:
+            require(str(Path(filename).resolve()) == first['import_origins'].get(name), 'Actual package import differs')
+    doses = read(Path(first['dose_freeze']))['doses']
+    queue = positive.final_specs(doses)[1:]
+    ids = [worker.condition_metadata(spec)['condition_id'] for spec in queue]
+    require(seal['planned'] == ids and set(ledger['attempts']) == set(seal['completed']) == set(ids),
+            'Complete fixed twelve-condition queue required')
+    artifacts = {'final-baseline': {'condition': {**baseline['condition'], 'endpoint': 'mmlu', 'layer_index': 14},
+                                   'rows': baseline['result']['mmlu'], 'direction': baseline['provenance']['direction']}}
+    conditions = []
+    for index, template in enumerate(queue):
+        cid = ids[index]
+        record = RUNS / cid / 'attempt-001'
+        path, request_path = record / 'output/completed.json', record / 'request.json'
+        request, manifest = read(request_path), read(record / 'run-manifest.json')
+        bind_request(request, first, template, index, worker)
+        entry = ledger['attempts'][cid]
+        sealed = {'path': str(path), 'sha256': sha(path)}
+        require(entry['attempt'] == manifest['attempt'] == 1
+                and entry['completed'] == manifest['completed'] == seal['completed'][cid] == sealed
+                and entry['status'] == manifest['status'] == 'completed'
+                and entry['record_dir'] == manifest['record_dir'] == str(record)
+                and entry['output_dir'] == manifest['output_dir'] == str(path.parent)
+                and entry['configuration_sha256'] == manifest['configuration_sha256'] == expected_configuration
+                and manifest['settled'] is True and manifest['returncode'] == 0 and not manifest['signals_received']
+                and manifest['output_hashes_final'] is True and not manifest.get('supervisor_failure')
+                and manifest['cwd'] == str(CORE) and manifest['request_sha256'] == sha(request_path),
+                'Unsettled or incorrectly bound negative run')
+        require(set(manifest['output_sha256']) == {'completed.json', 'execution.json', 'result.partial.json'},
+                'Mandatory output record set differs')
+        for name, digest in manifest['output_sha256'].items():
+            require(sha(path.parent / name) == digest, 'Negative output digest differs')
+        artifact = worker.validate_completed(path, request)
+        rows = artifact['result']['mmlu']
+        require(Counter(row['subject'] for row in rows) == Counter(row['subject'] for row in baseline['result']['mmlu'])
+                and len({row['subject'] for row in rows}) == 57, 'Fixed subject panel differs')
+        artifacts[cid] = {'condition': request['condition'], 'rows': rows, 'direction': request['direction']}
+        conditions.append({'condition_id': cid, **sealed, 'request_sha256': sha(request_path),
+                           'manifest_sha256': sha(record / 'run-manifest.json'), 'index': index,
+                           'started_at': manifest['started_at'], 'ended_at': manifest['ended_at']})
+    for target in positive.TARGETS:
+        trio = [artifacts[f'negative-mmlu-{target}-{control}'] for control in ('real', 'random42', 'random43')]
+        require(len({a['direction']['vector_sha256'] for a in trio}) == 3
+                and [a['condition']['random_seed'] for a in trio] == [None, 42, 43], 'Actual control identities differ')
+    return {'artifacts': artifacts, 'conditions': conditions, 'configuration_sha256': expected_configuration,
+            'doses': doses}
+
+
+def paired_mmlu(before: list[Any], after: list[Any], stats: SimpleNamespace) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Return second-minus-first estimates and exact paired correctness transitions."""
+    left, right = stats.rows(before), stats.rows(after)
+    require(set(left) == set(right), 'Paired MMLU IDs differ')
+    groups: dict[str, list[tuple[Any, Any]]] = defaultdict(list)
+    for key in sorted(left, key=lambda key: (left[key]['subject'], left[key]['source_index'], key)):
+        a, b = left[key], right[key]
+        require((a['subject'], a['source_index'], a['gold']) == (b['subject'], b['source_index'], b['gold']),
+                'Paired subject, source index or gold differs')
+        groups[a['subject']].append((a, b))
+    subjects = []
+    differences = {}
+    for subject, pairs in groups.items():
+        differences[subject] = [float(b['correct']) - float(a['correct']) for a, b in pairs]
+        subjects.append({'subject': subject, 'item_count': len(pairs),
+            'accuracy_before': mean(a['correct'] for a, _ in pairs), 'accuracy_after': mean(b['correct'] for _, b in pairs),
+            'accuracy_delta': mean(differences[subject]),
+            'gains_wrong_to_correct': sum(not a['correct'] and b['correct'] for a, b in pairs),
+            'losses_correct_to_wrong': sum(a['correct'] and not b['correct'] for a, b in pairs),
+            'unchanged_correct': sum(a['correct'] and b['correct'] for a, b in pairs),
+            'unchanged_wrong': sum(not a['correct'] and not b['correct'] for a, b in pairs),
+            'option_mass_before': mean(a['option_mass'] for a, _ in pairs),
+            'option_mass_after': mean(b['option_mass'] for _, b in pairs),
+            'option_mass_delta': mean(b['option_mass'] - a['option_mass'] for a, b in pairs)})
+    interval = stats.interval(differences)
+    estimate = {'mmlu_before': stats.subject_mean(before, 'correct'), 'mmlu_after': stats.subject_mean(after, 'correct'),
+        'mmlu_delta': mean(row['accuracy_delta'] for row in subjects) if subjects else None,
+        'mmlu_ci_low': interval.bounds[0] if interval.bounds else None,
+        'mmlu_ci_high': interval.bounds[1] if interval.bounds else None,
+        'mmlu_interval_status': 'nominal' if interval.bounds else 'inconclusive', 'mmlu_interval_reason': interval.reason,
+        **{key: sum(row[key] for row in subjects) for key in ('gains_wrong_to_correct', 'losses_correct_to_wrong',
+                                                           'unchanged_correct', 'unchanged_wrong')},
+        'mmlu_option_mass_delta': stats.subject_mean(after, 'option_mass') - stats.subject_mean(before, 'option_mass')
+                                 if subjects else None,
+        'mmlu_items': len(before), 'mmlu_subjects': len(subjects), 'inference_scope': 'estimation_only'}
+    return estimate, subjects
+
+
+def export_tables(out: Path, artifacts: dict[str, Any], stats: SimpleNamespace) -> dict[str, int]:
+    summaries: list[dict[str, Any]] = []
+    subject_summaries: list[dict[str, Any]] = []
+    for cid, artifact in artifacts.items():
+        rows = artifact['rows']
+        stats.rows(rows)
+        summaries.append({**artifact['condition'], **{k: artifact['direction'][k] for k in
+            ('raw_norm', 'vector_norm', 'injected_norm', 'vector_sha256')}, 'mmlu_items': len(rows), 'mmlu_subjects': 57,
+            'mmlu_correct_count': sum(row['correct'] for row in rows),
+            'mmlu_equal_subject_accuracy': stats.subject_mean(rows, 'correct'),
+            'mmlu_equal_subject_option_mass': stats.subject_mean(rows, 'option_mass')})
+        groups: dict[str, list[Any]] = defaultdict(list)
+        for row in rows:
+            groups[row['subject']].append(row)
+        subject_summaries.extend({'condition_id': cid, 'subject': subject, 'item_count': len(items),
+            'correct_count': sum(row['correct'] for row in items), 'accuracy': mean(row['correct'] for row in items),
+            'mean_option_mass': mean(row['option_mass'] for row in items)} for subject, items in sorted(groups.items()))
+    planned = []
+    for target in positive.TARGETS:
+        after = f'negative-mmlu-{target}-real'
+        planned.append(('real_minus_baseline', 'final-baseline', after))
+        planned.extend(('real_minus_random', f'negative-mmlu-{target}-{control}', after) for control in ('random42', 'random43'))
+    planned.extend(('domain_minus_pooled_descriptive', 'negative-mmlu-pooled-real', f'negative-mmlu-{target}-real')
+                   for target in positive.TARGETS[1:])
+    comparisons: list[dict[str, Any]] = []
+    transitions: list[dict[str, Any]] = []
+    for family, before, after in planned:
+        cid = after + '__minus__' + before
+        print(f'Computing {cid}', flush=True)
+        estimate, subjects = paired_mmlu(artifacts[before]['rows'], artifacts[after]['rows'], stats)
+        comparisons.append({'comparison_id': cid, 'family': family, 'before_condition': before, 'after_condition': after,
+                            **estimate})
+        transitions.extend({'comparison_id': cid, **row} for row in subjects)
+    plot = [{'comparison_id': row['comparison_id'], 'family': row['family'], 'endpoint': 'mmlu_accuracy',
+             'estimate': row['mmlu_delta'], 'ci_low': row['mmlu_ci_low'], 'ci_high': row['mmlu_ci_high'],
+             'interval_status': row['mmlu_interval_status'], 'interval_reason': row['mmlu_interval_reason'],
+             'unit': 'proportion_difference', 'inference_scope': 'estimation_only'} for row in comparisons]
+    for name, table in (('condition-summary', summaries), ('mmlu-subject-summary', subject_summaries),
+                        ('negative-contrasts', comparisons), ('mmlu-subject-contrasts', transitions), ('negative-plot-data', plot)):
+        write_table(out, name, table)
+    positive_summaries = {r['condition_id']: r for r in json.loads((POSITIVE_EVIDENCE / 'condition-summary.json').read_bytes())}
+    positive_contrasts = {r['comparison_id']: r for r in json.loads((POSITIVE_EVIDENCE / 'final-contrasts.json').read_bytes())}
+    positive_checksums = {name: digest for digest, name in
+                          (line.split() for line in (POSITIVE_EVIDENCE / 'SHA256SUMS').read_text().splitlines())}
+    require(all(sha(POSITIVE_EVIDENCE / name) == positive_checksums[name]
+                for name in ('condition-summary.json', 'final-contrasts.json')), 'Existing positive evidence hash differs')
+    require(positive_summaries['final-baseline']['mmlu_correct_count'] == summaries[0]['mmlu_correct_count']
+            and positive_summaries['final-baseline']['mmlu_equal_subject_accuracy'] == summaries[0]['mmlu_equal_subject_accuracy'],
+            'Existing positive summary baseline differs')
+    sign_points = []
+    for target in positive.TARGETS:
+        pos = positive_contrasts[f'final-{target}-real__minus__final-baseline']
+        neg = next(row for row in comparisons if row['after_condition'] == f'negative-mmlu-{target}-real'
+                   and row['family'] == 'real_minus_baseline')
+        sign_points.append({'target': target, 'positive_alpha': positive_summaries[f'final-{target}-real']['alpha'],
+            'negative_alpha': artifacts[f'negative-mmlu-{target}-real']['condition']['alpha'],
+            'baseline_accuracy': neg['mmlu_before'], 'positive_accuracy': pos['mmlu_after'], 'negative_accuracy': neg['mmlu_after'],
+            'positive_delta_vs_baseline': pos['mmlu_delta'], 'negative_delta_vs_baseline': neg['mmlu_delta'],
+            'scope': 'existing point estimates only; no sign contrast or test'})
+    write_table(out, 'positive-negative-points', sign_points)
+    counts = {'conditions': len(summaries), 'subject_summaries': len(subject_summaries),
+              'contrasts': len(comparisons), 'subject_contrasts': len(transitions), 'plot_rows': len(plot), 'sign_point_rows': 4}
+    require(counts == {'conditions': 13, 'subject_summaries': 741, 'contrasts': 15, 'subject_contrasts': 855,
+                       'plot_rows': 15, 'sign_point_rows': 4}, 'Output coverage differs')
+    return counts
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--out', type=Path, default=ASSIGNED / 'evidence')
+    out = parser.parse_args().out.resolve()
+    require(Path.cwd().resolve() == ASSIGNED and out.is_relative_to(ASSIGNED), 'Use the assigned scratch cwd/output')
+    require(sys.dont_write_bytecode and os.environ.get('PYTHONDONTWRITEBYTECODE') == '1', 'Disable bytecode writes')
+    require(sys.pycache_prefix is not None and Path(sys.pycache_prefix).is_relative_to(ASSIGNED)
+            and not Path(sys.pycache_prefix).exists(), 'Use a nonexistent scratch bytecode prefix to avoid cached imports')
+    require(Path(sys.prefix).resolve() == CORE / '.venv' and os.environ.get('PYTHONPATH') == str(CORE / 'src'),
+            'Use the frozen Python environment and explicit import path')
+    require(all(os.environ.get(key) == '1' for key in ENV_KEYS[3:]), 'Use one numerical thread and offline model libraries')
+    torch.set_num_threads(1)
+    torch.set_num_interop_threads(1)
+    worker, stats = frozen_bridges()
+    first = worker.read_json(RUNS / 'negative-mmlu-pooled-real/attempt-001/request.json')
+    roots = {'positive_implementation': CORE, 'negative_implementation': CALLER_ROOT,
+             'positive_planning': POSITIVE_PLANNING, 'negative_planning': NEGATIVE_PLANNING}
+    states = {key: git_state(root) for key, root in roots.items()}
+    require(all(not state['status'] for state in states.values())
+            and states['positive_implementation']['head'] == '249d0cd148d8e49fe1fd290012258ed618454f13'
+            and states['negative_implementation']['head'] == '411b57fb4ae69b280962f11ef1fe141fecae6d20',
+            'Frozen checkouts are dirty or changed')
+    inventory = source_inventory(first)
+    out.mkdir()
+    write_json(out / 'analysis-execution-record.json', {'started_at': datetime.now(timezone.utc).isoformat(),
+        'argv': sys.orig_argv, 'cwd': str(Path.cwd()), 'environment': {key: os.environ.get(key) for key in ENV_KEYS},
+        'python': platform.python_version(), 'python_executable': str(Path(sys.executable).resolve()),
+        'versions': {name: importlib.metadata.version(name) for name in ('numpy', 'scipy', 'torch', 'transformers', 'pyarrow')},
+        'torch_threads': torch.get_num_threads(), 'torch_interop_threads': torch.get_num_interop_threads(),
+        'git_before': states, 'adapter_sha256': sha(SCRIPT), 'model_calls': 0,
+        'scipy_bootstrap_source': inspect.getsourcefile(inspect.unwrap(bootstrap)),
+        'mmlu_loader_path_bindings': {'source': str(mmlu_data.FINAL_SOURCE_PATH), 'manifest': str(mmlu_data.FINAL_MANIFEST_PATH)},
+        'statistical_source': str(Path(harmless_results.__file__).resolve()),
+        'statistical_source_sha256': STATS_SHA, 'negative_validator_source': str(CALLER),
+        'negative_validator_source_sha256': CALLER_SHA})
+    write_json(out / 'source-inventory-before.json', inventory)
+    validated = validate_inputs(worker, first, states)
+    write_json(out / 'validation.json', {key: value for key, value in validated.items() if key != 'artifacts'})
+    counts = export_tables(out, validated['artifacts'], stats)
+    check_unchanged(inventory)
+    after = {key: git_state(root) for key, root in roots.items()}
+    require(after == states, 'Frozen git state changed during analysis')
+    write_json(out / 'analysis-completion.json', {'completed_at': datetime.now(timezone.utc).isoformat(), **counts,
+        'all_sources_and_records_unchanged': True, 'git_after': after, 'model_calls': 0,
+        'adapter_sha256': sha(SCRIPT), 'source_inventory_sha256': sha(out / 'source-inventory-before.json')})
+    with (out / 'SHA256SUMS').open('x') as stream:
+        for path in sorted(out.iterdir()):
+            if path.is_file() and path.name != 'SHA256SUMS':
+                stream.write(f'{sha(path)}  {path.name}\n')
+    print(json.dumps(counts), flush=True)
+
+
+if __name__ == '__main__':
+    main()

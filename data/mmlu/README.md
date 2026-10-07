@@ -45,7 +45,11 @@ The accepted panel contains 1705 original sampled rows plus five deterministic
 replacements. It has no exact model-input duplicates or validation overlaps;
 two within-panel pairs share question text with different choices and are retained
 because the exact key includes ordered choices. Semantic overlap and near-duplicates
-were not assessed. The panel is unscored and
-has no final runner/scorer hookup. Run the focused data checks from the repository
+were not assessed. The panel was scored in the 13 positive-final conditions
+and 12 negative-MMLU conditions, with the positive-final baseline reused for the
+negative comparisons. The complete panel is loaded by `steering/harmless_execution.py`
+and `steering/negative_mmlu.py`; the portable release rerun is
+`scripts/run_condition.py`. Accepted aggregate results and run projections are
+under `results/positive/`, `results/negative/` and `results/runs/`. Run the focused data checks from the repository
 root with `uv run --locked pytest src/activation_steering_study/data/test_mmlu.py
 src/activation_steering_study/data/test_mmlu_final.py`.

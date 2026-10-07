@@ -1,0 +1,386 @@
+"""Fixed twelve-condition negative-MMLU supplement to the completed positive core.
+
+The new caller and this launcher live in separate, clean negative checkouts. Model
+execution retains the positive cwd, uv/Python, environment and package origins.
+No positive ledger is opened for writing; no retries or deadline overrides exist.
+"""
+
+import argparse
+from datetime import datetime, timezone
+import hashlib
+import importlib.util
+from pathlib import Path
+import subprocess
+import sys
+import time
+from types import SimpleNamespace
+from typing import Any
+
+POSITIVE_READINESS = Path("historical/positive-protocol/assessments/a3/iterations/iteration-04-positive-execution-2026-10-05/readiness")
+POSITIVE_FREEZE_SHA256 = "ce25b826040b5a1c58982a7f36a1e4b3a4a4b03d716ebe7a7cba4f9f1dbe2b46"
+POSITIVE_LAUNCHER_SHA256 = "606ecae1e83913bd74176cd756d923fe018ae3064607756413d04ee3ed57b913"
+CALLER_RELATIVE = "src/activation_steering_study/steering/negative_mmlu.py"
+HARD_STOP = datetime(2026, 10, 7, 20, tzinfo=timezone.utc)
+
+
+def _load(name: str, path: Path, *, source_sha256: str | None = None):
+    """Execute the source bytes checked here, never a timestamp-valid bytecode cache."""
+    source = path.read_bytes()
+    if source_sha256 is not None and hashlib.sha256(source).hexdigest() != source_sha256:
+        raise ValueError("Reviewed module source hash differs")
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise ValueError("Source module cannot be loaded")
+    module = importlib.util.module_from_spec(spec)
+    previous = sys.modules.get(name)
+    sys.modules[name] = module
+    try:
+        exec(compile(source, str(path), "exec", dont_inherit=True), module.__dict__)
+    except BaseException:
+        if previous is None:
+            sys.modules.pop(name, None)
+        else:
+            sys.modules[name] = previous
+        raise
+    return module
+
+
+def positive_bridge() -> SimpleNamespace:
+    """Bind the immutable launcher's public APIs and necessary private lifecycle APIs.
+
+    The aliases make this narrow compatibility dependency explicit. The exact source
+    hash and hard-stop contract are checked before reuse; signal/session/lock logic
+    remains solely in its reviewed owning module.
+    """
+    path = POSITIVE_READINESS / "positive_campaign.py"
+    module = _load("shared_positive_campaign", path, source_sha256=POSITIVE_LAUNCHER_SHA256)
+    names = {"preflight": "preflight", "supervise": "supervise", "records_lock": "_records_lock",
+             "refuse_live_attempt": "_refuse_live_attempt", "unchanged": "_unchanged",
+             "write": "_write", "read": "_read", "sha": "_sha", "disk": "_disk"}
+    if module.HARD_STOP != HARD_STOP or any(not callable(getattr(module, name, None)) for name in names.values()):
+        raise ValueError("Frozen positive lifecycle API contract differs")
+    return SimpleNamespace(**{alias: getattr(module, name) for alias, name in names.items()})
+
+
+def positive_evidence(shared, context: dict[str, Any]) -> dict[str, Any]:
+    """Verify all 24 sealed conditions and derive the already frozen dose/baseline."""
+    from activation_steering_study.analysis.harmless_audit import json_digest
+    from activation_steering_study.steering.harmless_execution import (
+        development_specs, final_specs, select_domain_doses, validate_completed_artifact,
+    )
+    records = context["records_root"]
+    ledger = shared.read(records / "ledger.json")
+    dose = shared.read(records / "dose-freeze.json")
+    population = shared.read(records / "population.json")
+    specs = (*development_specs(), *final_specs(dose["doses"]))
+    if (ledger["status"] != "positive_complete" or ledger["retry_used"] is not False
+            or ledger["configuration_sha256"] != context["configuration_sha256"]
+            or ledger["dose_freeze"] != dose or ledger["dose_freeze_sha256"] != json_digest(dose)
+            or dose["configuration_sha256"] != context["configuration_sha256"]
+            or set(ledger["attempts"]) != {spec.condition_id for spec in specs}):
+        raise ValueError("The entire no-retry positive core must be complete and sealed")
+    hashes = {str(records / name): shared.sha(records / name)
+              for name in ("ledger.json", "dose-freeze.json", "population.json")}
+    artifacts = {}
+    for spec in specs:
+        entries = ledger["attempts"][spec.condition_id]
+        record = records / spec.condition_id / "attempt-001"
+        output = record / "output" / "completed.json"
+        manifest = shared.read(record / "run-manifest.json")
+        sealed = {"path": str(output), "sha256": shared.sha(output)}
+        if (len(entries) != 1 or entries[0]["attempt"] != 1 or entries[0]["status"] != "completed"
+                or entries[0]["record_dir"] != str(record) or entries[0]["output_dir"] != str(output.parent)
+                or entries[0]["configuration_sha256"] != context["configuration_sha256"]
+                or entries[0]["completed"] != sealed or manifest["completed"] != sealed
+                or manifest["status"] != "completed" or manifest["settled"] is not True
+                or manifest["returncode"] != 0 or manifest["signals_received"]
+                or manifest.get("supervisor_failure") or manifest["configuration_sha256"] != context["configuration_sha256"]
+                or manifest["condition"] != spec.to_dict()
+                or manifest["commits"] != context["commits"] or manifest["runtime"] != context["runtime"]
+                or manifest["cwd"] != str(context["roots"]["implementation"])
+                or manifest["environment"] != context["freeze"]["environment"]
+                or manifest["child_effective_environment"] != context["freeze"]["child_effective_environment"]
+                or manifest["import_origins"] != context["origins"]
+                or manifest["inputs_before"] != context["hashes"] or manifest["inputs_after"] != context["hashes"]
+                or manifest["model_snapshot_before"] != context["snapshot"]
+                or manifest["model_snapshot_after"] != context["snapshot"]):
+            raise ValueError("Positive sealed condition or endpoint provenance differs")
+        shared.refuse_live_attempt(entries[0])
+        artifacts[spec.condition_id] = validate_completed_artifact(output, spec,
+            tensor_path=context["inputs"]["tensor"], reference_path=context["inputs"]["reference"])
+        for path in (output, output.parent / "execution.json", record / "run-manifest.json"):
+            hashes[str(path)] = shared.sha(path)
+    if (select_domain_doses([artifacts[spec.condition_id] for spec in development_specs()]) != dose["doses"]
+            or dose["development"] != {spec.condition_id: ledger["attempts"][spec.condition_id][0]["completed"]["sha256"]
+                                      for spec in development_specs()}
+            or population != {"schema_version": 1, "configuration_sha256": context["configuration_sha256"],
+                "reason": "positive_complete", "completed": {spec.condition_id: ledger["attempts"][spec.condition_id][0]["completed"]
+                                                            for spec in specs if spec.role == "final"}}
+            or ledger["population_sha256"] != json_digest(population)):
+        raise ValueError("Positive dose or population seal differs")
+    return {"hashes": hashes, "doses": dose["doses"], "baseline": artifacts["final-baseline"],
+            "baseline_path": records / "final-baseline/attempt-001/output/completed.json",
+            "dose_path": records / "dose-freeze.json"}
+
+
+def _committed(path: Path, root: Path, commit: str, digest: str) -> None:
+    relative = path.relative_to(root)
+    blob = subprocess.check_output(["git", "show", f"{commit}:{relative}"], cwd=root)
+    if hashlib.sha256(blob).hexdigest() != digest or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+        raise ValueError("Frozen source differs from its committed bytes")
+
+
+def preflight(freeze_path: Path) -> dict[str, Any]:
+    shared = positive_bridge()
+    freeze_path = freeze_path.resolve()
+    freeze = shared.read(freeze_path)
+    fields = {"schema_version", "status", "caller_root", "caller_commit", "caller_sha256", "planning_root",
+              "launcher_path", "launcher_sha256", "positive_freeze_sha256", "positive_records", "records_root",
+              "timing_note"}
+    if set(freeze) != fields or freeze["schema_version"] != 1 or freeze["status"] != "frozen":
+        raise ValueError("Complete committed negative freeze required")
+    positive_freeze = POSITIVE_READINESS / "freeze.json"
+    if shared.sha(positive_freeze) != POSITIVE_FREEZE_SHA256 or freeze["positive_freeze_sha256"] != POSITIVE_FREEZE_SHA256:
+        raise ValueError("Accepted shared positive freeze differs")
+    core = shared.preflight(positive_freeze)
+    caller_root, planning = Path(freeze["caller_root"]), Path(freeze["planning_root"])
+    caller_path = caller_root / CALLER_RELATIVE
+    if (not caller_root.is_absolute() or caller_root.resolve() != caller_root or caller_root in core["roots"].values()
+            or not planning.is_absolute() or planning.resolve() != planning or planning == caller_root
+            or planning in core["roots"].values() or not freeze_path.is_relative_to(planning)
+            or Path(freeze["launcher_path"]) != Path(__file__).resolve()
+            or not Path(__file__).resolve().is_relative_to(planning)):
+        raise ValueError("Use distinct committed negative caller and planning checkouts")
+    _committed(caller_path, caller_root, freeze["caller_commit"], freeze["caller_sha256"])
+    worker = _load("negative_mmlu_caller", caller_path, source_sha256=freeze["caller_sha256"])
+    worker.checked_repository(caller_root, freeze["caller_commit"])
+    planning_commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=planning).decode().strip()
+    worker.checked_repository(planning, planning_commit)
+    _committed(Path(__file__).resolve(), planning, planning_commit, freeze["launcher_sha256"])
+    _committed(freeze_path, planning, planning_commit, shared.sha(freeze_path))
+    evidence = positive_evidence(shared, core)
+    if evidence["hashes"] != freeze["positive_records"]:
+        raise ValueError("Positive records differ from the negative freeze")
+    records = Path(freeze["records_root"])
+    if (not records.is_absolute() or records.resolve() != records or not records.is_dir()
+            or any(records.is_relative_to(root) for root in (*core["roots"].values(), caller_root, planning,
+                                                            core["records_root"], Path("/tmp"), Path("/var/tmp")))):
+        raise ValueError("Use the approved separate persistent negative records directory")
+    from activation_steering_study.analysis.harmless_audit import json_digest
+    from activation_steering_study.steering.harmless_execution import final_specs
+    configuration = json_digest({"freeze_sha256": shared.sha(freeze_path), "caller_commit": freeze["caller_commit"],
+                                 "planning_commit": planning_commit, "positive_configuration": core["configuration_sha256"]})
+    return {"shared": shared, "worker": worker, "freeze": freeze, "freeze_path": freeze_path,
+            "freeze_sha256": shared.sha(freeze_path), "planning_commit": planning_commit,
+            "core": core, "evidence": evidence, "records_root": records,
+            "configuration_sha256": configuration, "queue": final_specs(evidence["doses"])[1:]}
+
+
+def unchanged(context: dict[str, Any]) -> None:
+    shared, freeze, worker = context["shared"], context["freeze"], context["worker"]
+    shared.unchanged(context["core"])
+    worker.checked_repository(Path(freeze["caller_root"]), freeze["caller_commit"])
+    worker.checked_repository(Path(freeze["planning_root"]), context["planning_commit"])
+    checks = {**freeze["positive_records"], str(context["freeze_path"]): context["freeze_sha256"],
+              str(Path(freeze["caller_root"]) / CALLER_RELATIVE): freeze["caller_sha256"],
+              freeze["launcher_path"]: freeze["launcher_sha256"]}
+    if any(shared.sha(Path(path)) != digest for path, digest in checks.items()):
+        raise ValueError("Negative source, configuration or positive evidence drift")
+
+
+def request_for(context: dict[str, Any], index: int) -> dict[str, Any]:
+    core, freeze, worker = context["core"], context["freeze"], context["worker"]
+    template = context["queue"][index]
+    caller = str(Path(freeze["caller_root"]) / CALLER_RELATIVE)
+    _, direction = worker.negative_direction(template, core["inputs"]["tensor"], core["inputs"]["reference"])
+    return {"schema_version": 1, "configuration_sha256": context["configuration_sha256"], "condition_index": index,
+            "condition": worker.condition_metadata(template), "direction": direction,
+            "tensor": str(core["inputs"]["tensor"]), "reference": str(core["inputs"]["reference"]),
+            "dose_freeze": str(context["evidence"]["dose_path"]), "baseline": str(context["evidence"]["baseline_path"]),
+            "integrity": {**{str(path): core["hashes"][name] for name, path in core["inputs"].items()},
+                          **freeze["positive_records"], caller: freeze["caller_sha256"],
+                          freeze["launcher_path"]: freeze["launcher_sha256"],
+                          str(context["freeze_path"]): context["freeze_sha256"]},
+            "caller": {"root": freeze["caller_root"], "commit": freeze["caller_commit"], "path": caller},
+            "core": {"root": str(core["roots"]["implementation"]), "commit": core["commits"]["implementation"]},
+            "environment": core["freeze"]["child_effective_environment"],
+            "runtime": context["evidence"]["baseline"]["provenance"]["runtime"], "import_origins": core["origins"]}
+
+
+def _completed(context: dict[str, Any], entry: dict[str, Any], index: int) -> None:
+    shared, worker = context["shared"], context["worker"]
+    request = request_for(context, index)
+    record = context["records_root"] / request["condition"]["condition_id"] / "attempt-001"
+    output = record / "output" / "completed.json"
+    manifest = shared.read(record / "run-manifest.json")
+    sealed = {"path": str(output), "sha256": shared.sha(output)}
+    if (entry["attempt"] != 1 or entry["record_dir"] != str(record) or entry["output_dir"] != str(output.parent)
+            or entry["status"] != "completed" or manifest["status"] != "completed"
+            or entry["configuration_sha256"] != context["configuration_sha256"]
+            or manifest["configuration_sha256"] != context["configuration_sha256"]
+            or entry["completed"] != sealed or manifest["completed"] != sealed
+            or manifest["settled"] is not True or manifest["returncode"] != 0 or manifest["signals_received"]
+            or manifest.get("supervisor_failure")
+            or manifest.get("execution_processes", {}).get("orphan_after_uv_exit")
+            or manifest.get("execution_processes", {}).get("hard_stop_reached")
+            or shared.read(record / "request.json") != request
+            or manifest["request_sha256"] != shared.sha(record / "request.json")
+            or shared.read(output.parent / "execution.json")["request_sha256"] != manifest["request_sha256"]):
+        raise ValueError("Negative completion is not sealed to this exact configuration")
+    worker.validate_completed(output, request)
+
+
+def _seal(context: dict[str, Any], ledger: dict[str, Any], status: str) -> None:
+    from activation_steering_study.steering.harmless_execution import publish_json
+    completed = {key: entry["completed"] for key, entry in ledger["attempts"].items() if entry["status"] == "completed"}
+    seal = {"schema_version": 1, "configuration_sha256": context["configuration_sha256"], "status": status,
+            "completed": completed, "planned": [context["worker"].condition_metadata(spec)["condition_id"] for spec in context["queue"]]}
+    path = context["records_root"] / "completion.json"
+    digest = publish_json(path, seal)
+    ledger.update(status=status, completion_sha256=digest, ended_at=datetime.now(timezone.utc).isoformat())
+    context["shared"].write(context["records_root"] / "ledger.json", ledger)
+
+
+def run_locked(context: dict[str, Any]) -> int:
+    from activation_steering_study.steering.harmless_execution import publish_json
+    shared, worker, records = context["shared"], context["worker"], context["records_root"]
+    ledger_path = records / "ledger.json"
+    ids = [worker.condition_metadata(spec)["condition_id"] for spec in context["queue"]]
+    if ledger_path.exists():
+        ledger = shared.read(ledger_path)
+        if ledger["configuration_sha256"] != context["configuration_sha256"]:
+            raise ValueError("Resume requires the exact frozen negative configuration")
+    else:
+        if any(path.name != ".launcher.lock" for path in records.iterdir()):
+            raise ValueError("Unledgered negative records require recovery")
+        ledger = {"schema_version": 1, "configuration_sha256": context["configuration_sha256"],
+                  "status": "active", "attempts": {}, "hard_stop": HARD_STOP.isoformat(),
+                  "timing_note": context["freeze"]["timing_note"]}
+        shared.write(ledger_path, ledger)
+    attempted = ids[:len(ledger["attempts"])]
+    if set(ledger["attempts"]) != set(attempted):
+        raise ValueError("Negative ledger departed from the fixed condition order")
+    blocked_code = None
+    for index, condition_id in enumerate(attempted):
+        entry = ledger["attempts"][condition_id]
+        record = records / condition_id / "attempt-001"
+        if (entry["attempt"] != 1 or entry["record_dir"] != str(record) or entry["output_dir"] != str(record / "output")
+                or entry["configuration_sha256"] != context["configuration_sha256"]
+                or entry["status"] not in ("completed", "running", "unresolved", "failed", "incomplete")):
+            raise ValueError("Attempt identity or status differs")
+        shared.refuse_live_attempt(entry)
+        if entry["status"] == "completed":
+            _completed(context, entry, index)
+        elif entry["status"] in ("running", "unresolved"):
+            raise ValueError("Unresolved prior attempt blocks all further launches")
+        elif index != len(attempted) - 1:
+            raise ValueError("A noncompleted negative condition was skipped")
+        else:
+            if (Path(entry["output_dir"]) / "completed.json").exists():
+                raise ValueError("Published output after failure requires explicit recovery")
+            blocked_code = 3 if entry["status"] == "incomplete" else 2
+    if ledger["status"] in ("complete", "hard_stopped"):
+        seal = shared.read(records / "completion.json")
+        completed = {key: entry["completed"] for key, entry in ledger["attempts"].items() if entry["status"] == "completed"}
+        if (shared.sha(records / "completion.json") != ledger["completion_sha256"]
+                or seal != {"schema_version": 1, "configuration_sha256": context["configuration_sha256"],
+                            "status": ledger["status"], "completed": completed, "planned": ids}
+                or (ledger["status"] == "complete" and len(completed) != 12)):
+            raise ValueError("Negative terminal seal differs")
+        return 0 if ledger["status"] == "complete" else 3
+    if ledger["status"] != "active":
+        raise ValueError("Unknown negative ledger status")
+    if blocked_code is not None:
+        return blocked_code
+    for index in range(len(attempted), len(ids)):
+        unchanged(context)
+        if datetime.now(timezone.utc) >= HARD_STOP:
+            _seal(context, ledger, "hard_stopped")
+            return 3
+        request = request_for(context, index)
+        record = records / ids[index] / "attempt-001"
+        record.mkdir(parents=True, exist_ok=False)
+        output = record / "output"
+        request_path = record / "request.json"
+        request_sha = publish_json(request_path, request)
+        argv = [*context["core"]["python_command"], "-u", request["caller"]["path"], "--request", str(request_path),
+                "--request-sha256", request_sha, "--attempt-dir", str(output)]
+        entry = {"attempt": 1, "status": "running", "record_dir": str(record), "output_dir": str(output),
+                 "configuration_sha256": context["configuration_sha256"]}
+        ledger["attempts"][ids[index]] = entry
+        manifest = {**entry, "argv": argv, "request_sha256": request_sha,
+                    "cwd": str(context["core"]["roots"]["implementation"]),
+                    "environment": context["core"]["freeze"]["environment"],
+                    "disk_before": shared.disk(records), "started_at": datetime.now(timezone.utc).isoformat()}
+        manifest_path = record / "run-manifest.json"
+        shared.write(manifest_path, manifest)
+        shared.write(ledger_path, ledger)
+        tick = time.monotonic()
+        code, settled = shared.supervise(argv, context["core"]["roots"]["implementation"],
+                                        context["core"]["freeze"]["environment"], manifest, manifest_path)
+        uncertain = (not settled or bool(manifest["signals_received"] or manifest.get("supervisor_failure")
+                     or manifest.get("execution_processes", {}).get("orphan_after_uv_exit")))
+        stopped = (manifest.get("execution_processes", {}).get("hard_stop_reached", False)
+                   or datetime.now(timezone.utc) >= HARD_STOP)
+        entry["status"] = "unresolved" if uncertain else "failed"
+        # The owning supervisor records its deadline SIGTERM in signals_received.
+        # A settled cutoff is incomplete; supervision or later provenance errors remain unresolved.
+        if stopped and settled and not manifest.get("supervisor_failure") and not manifest.get("cleanup_error"):
+            entry["status"] = "incomplete"
+        manifest.update(ended_at=datetime.now(timezone.utc).isoformat(), elapsed_seconds=time.monotonic() - tick,
+                        disk_after=shared.disk(records), output_hashes_final=settled)
+        if settled:
+            manifest["output_sha256"] = {str(path.relative_to(output)): shared.sha(path) for path in output.rglob("*") if path.is_file()}
+            try:
+                unchanged(context)
+                if code == 0 and not uncertain and not stopped:
+                    worker.validate_completed(output / "completed.json", request)
+                    entry.update(status="completed", completed={"path": str(output / "completed.json"), "sha256": shared.sha(output / "completed.json")})
+                    manifest["completed"] = entry["completed"]
+            except Exception as error:
+                entry["status"] = "unresolved"
+                manifest["validation_error"] = type(error).__name__
+        manifest["status"] = entry["status"]
+        shared.write(manifest_path, manifest)
+        shared.write(ledger_path, ledger)
+        if entry["status"] == "incomplete":
+            _seal(context, ledger, "hard_stopped")
+            return 3
+        if entry["status"] != "completed":
+            return 4 if entry["status"] == "unresolved" else 2
+    _seal(context, ledger, "complete")
+    return 0
+
+
+def run_campaign(freeze_path: Path, records_root: Path) -> int:
+    context = preflight(freeze_path)
+    if records_root.resolve() != context["records_root"]:
+        raise ValueError("Negative records root differs from freeze")
+    with context["shared"].records_lock(context["records_root"]):
+        unchanged(context)
+        return run_locked(context)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--freeze", type=Path, required=True)
+    parser.add_argument("--records-root", type=Path, required=True)
+    parser.add_argument("--preflight-only", action="store_true", help="Verify admission without taking the records lock or creating attempts")
+    args = parser.parse_args()
+    try:
+        if args.preflight_only:
+            context = preflight(args.freeze)
+            if args.records_root.resolve() != context["records_root"]:
+                raise ValueError("Negative records root differs from freeze")
+            print({"configuration_sha256": context["configuration_sha256"],
+                   "conditions": len(context["queue"]), "status": "preflight_passed"})
+            code = 0
+        else:
+            code = run_campaign(args.freeze, args.records_root)
+    except Exception as error:
+        raise SystemExit(f"Negative campaign blocked ({type(error).__name__}); inspect retained records") from None
+    raise SystemExit(code)
+
+
+if __name__ == "__main__":
+    main()

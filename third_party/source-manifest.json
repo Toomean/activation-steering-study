@@ -1,0 +1,79 @@
+{
+  "checked_utc": "2026-10-07",
+  "notices": [
+    {
+      "name": "refusal-direction-Apache-2.0.txt",
+      "url": "https://raw.githubusercontent.com/andyrdt/refusal_direction/9d852fae1a9121c78b29142de733cb1340770cc3/LICENSE",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "name": "truthfulqa-Apache-2.0.txt",
+      "url": "https://raw.githubusercontent.com/sylinrl/TruthfulQA/d71c110897f5d31c5d7f309e7bc316c152f6f031/LICENSE",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "name": "mmlu-MIT.txt",
+      "url": "https://raw.githubusercontent.com/hendrycks/test/master/LICENSE",
+      "bytes": 1070,
+      "sha256": "5d841b9eee8bf0d721359b79fbae956a8b426d3139bfefee32149c7d4f2a1a9c"
+    },
+    {
+      "name": "caa-MIT.txt",
+      "url": "https://raw.githubusercontent.com/nrimsky/CAA/5dabbbd9a0bca5f25e174501e959de378806aa48/LICENSE",
+      "bytes": 1068,
+      "sha256": "4f40800b2b823f96366eb9de7d0113970fab96f724ab535d45badca5735ad74f"
+    },
+    {
+      "name": "anthropic-CC-BY-4.0.txt",
+      "url": "https://raw.githubusercontent.com/anthropics/evals/84fcc677e52e1902d696c32cd1a6b663e70d3993/LICENSE",
+      "bytes": 18650,
+      "sha256": "7e7170e3cebf88a9f60c7b8421418323c09304da1af4d5e90f4da1dc1c8a2661"
+    },
+    {
+      "name": "alpaca-CC-BY-NC-4.0.txt",
+      "url": "https://raw.githubusercontent.com/tatsu-lab/stanford_alpaca/main/DATA_LICENSE",
+      "bytes": 19346,
+      "sha256": "3711f963c05d0be80d53e5923308a6dee31b203da23435c9cfb7c7b6e4dd5e19"
+    },
+    {
+      "name": "advbench-MIT.txt",
+      "url": "https://raw.githubusercontent.com/llm-attacks/llm-attacks/main/LICENSE",
+      "bytes": 1065,
+      "sha256": "1e4bb8e2313ef9ff36033526503aa8837c80ba1d4c055c2e7d9977760028eec7"
+    },
+    {
+      "name": "harmbench-MIT.txt",
+      "url": "https://raw.githubusercontent.com/centerforaisafety/HarmBench/main/LICENSE",
+      "bytes": 1074,
+      "sha256": "fe29c68dd1216e81e98a6069165e1c720757b23bbcaa6c0cb8f9a957bdaaca80"
+    },
+    {
+      "name": "jailbreakbench-MIT.txt",
+      "url": "https://raw.githubusercontent.com/JailbreakBench/jailbreakbench/main/LICENSE",
+      "bytes": 1076,
+      "sha256": "7e1ae8f3676f39ff6e62af1743385c176a9476b1157f35bb9d05b4e6c65b7d94"
+    },
+    {
+      "name": "strongreject-source-MIT.txt",
+      "url": "https://raw.githubusercontent.com/alexandrasouly/strongreject/main/LICENSE",
+      "bytes": 1087,
+      "sha256": "e8bcbf075f0b236c00a8661f9d89189e2d3a8ab7c3d68c746d7801bb14c0f871"
+    },
+    {
+      "name": "tdc2023-MIT.txt",
+      "url": "https://raw.githubusercontent.com/centerforaisafety/tdc2023-starter-kit/main/LICENSE",
+      "bytes": 1074,
+      "sha256": "fe29c68dd1216e81e98a6069165e1c720757b23bbcaa6c0cb8f9a957bdaaca80"
+    }
+  ],
+  "unresolved": [
+    {
+      "source": "MaliciousInstruct",
+      "upstream": "https://github.com/Princeton-SysML/Jailbreak_LLM",
+      "tree_revision": "1e490531c0ef4bc13430178bf1fbc8f813e34b1a",
+      "status": "No redistribution licence located in the inspected upstream tree or README. Existing historical data retained; publication permission unresolved."
+    }
+  ]
+}

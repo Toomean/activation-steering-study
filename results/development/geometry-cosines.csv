@@ -1,0 +1,4 @@
+left,right,raw_cosine,centered_cosine
+cyber_intrusion,dangerous_substances,0.9298672930056482,-0.6495658638075076
+cyber_intrusion,disinformation,0.9631452436027729,-0.1663143145330181
+dangerous_substances,disinformation,0.9190083978530694,-0.6416842931865714

@@ -1,0 +1,17 @@
+{
+  "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+  "model_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+  "model_dtype": "torch.bfloat16",
+  "layer_index": 14,
+  "direction_norms": {
+    "pooled": 12.335375785827637,
+    "cyber_intrusion": 12.306798934936523,
+    "dangerous_substances": 10.908812522888184,
+    "disinformation": 11.453601837158203
+  },
+  "tensor_sha256": "28150fee085e3e0b0f2aa0422d8a414a654251be593a61e26b359010855893da",
+  "source_metadata_path": "historical/implementation/artifacts/refusal-domains.json",
+  "source_metadata_sha256": "e8c6c3cdcbcba6ba2e2f0e3fbab44aeb1880a1538a0821067ebdc45bf9d1eb2a",
+  "scope": "Numerical scale reference only; current refusal extraction provenance must be validated separately before refusal execution.",
+  "tensor_bytes_sha256_verified": true
+}

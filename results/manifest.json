@@ -1,0 +1,816 @@
+{
+  "schema_version": 1,
+  "evidence_revision": "528bffd",
+  "implementation_base": "411b57fb4ae69b280962f11ef1fe141fecae6d20",
+  "intervals": "Accepted nominal intervals are versioned inputs; table and plot regeneration does not recompute paired intervals",
+  "files": [
+    {
+      "path": "results/development/development.csv",
+      "source_id": "development.csv",
+      "original_sha256": "2109adeaf16a2b467cffb6358bfd8237fe5e878d7efbce8d42d63319c16942fd",
+      "projection_sha256": "38d1e36aa13b8d10f834a644392488854e63b1df6de3c2cfd59bb96c3b7baf14",
+      "size_bytes": 5920,
+      "transformation": "Private completed paths replaced by unpublished logical locations; all numerical columns and original completed hashes retained"
+    },
+    {
+      "path": "results/development/dose-selection.csv",
+      "source_id": "dose-selection.csv",
+      "original_sha256": "c307aa7dabed8e23ed48e604a844bb40c1ea7f1ecea78b94255d12dada28ac3a",
+      "projection_sha256": "c307aa7dabed8e23ed48e604a844bb40c1ea7f1ecea78b94255d12dada28ac3a",
+      "size_bytes": 1917,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/development/geometry-cosines.csv",
+      "source_id": "geometry-cosines.csv",
+      "original_sha256": "3058bb39fca81bfbcf0a63f8f754106e13c9c3504f556a9e28a6cfeabfe30107",
+      "projection_sha256": "3058bb39fca81bfbcf0a63f8f754106e13c9c3504f556a9e28a6cfeabfe30107",
+      "size_bytes": 263,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/development/geometry-split-halves.csv",
+      "source_id": "geometry-split-halves.csv",
+      "original_sha256": "4c504b28080bf7fcc8e02e3092d4695496dd6534b7cd05ea0ec6f35366f4fd7a",
+      "projection_sha256": "4c504b28080bf7fcc8e02e3092d4695496dd6534b7cd05ea0ec6f35366f4fd7a",
+      "size_bytes": 698,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/positive/condition-summary.csv",
+      "source_id": "condition-summary.csv",
+      "original_sha256": "fd18f65b101817079baefc963809977e22ba0f91f21e17bf9657c8f510959889",
+      "projection_sha256": "fd18f65b101817079baefc963809977e22ba0f91f21e17bf9657c8f510959889",
+      "size_bytes": 4636,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/positive/final-contrasts.csv",
+      "source_id": "final-contrasts.csv",
+      "original_sha256": "055998770e706f8b725f51614994da04aead98b77ce9ba82a88e4bac879f95b8",
+      "projection_sha256": "055998770e706f8b725f51614994da04aead98b77ce9ba82a88e4bac879f95b8",
+      "size_bytes": 7606,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/positive/final-plot-data.csv",
+      "source_id": "final-plot-data.csv",
+      "original_sha256": "1b12713fc99c20a05bd3b1706c19f53ea5c3e40d83f6ccbf0dc57aca0dff82e2",
+      "projection_sha256": "1b12713fc99c20a05bd3b1706c19f53ea5c3e40d83f6ccbf0dc57aca0dff82e2",
+      "size_bytes": 5496,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/positive/random-control-conjunction.csv",
+      "source_id": "random-control-conjunction.csv",
+      "original_sha256": "24331a81152ca563ee93d55b26c3830df396bd94bc413ebd7ce1e5a6a9d17f25",
+      "projection_sha256": "24331a81152ca563ee93d55b26c3830df396bd94bc413ebd7ce1e5a6a9d17f25",
+      "size_bytes": 431,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/positive/mmlu-subject-summary.csv",
+      "source_id": "mmlu-subject-summary.csv",
+      "original_sha256": "01794bcc103c4b9fa9d5a7b47fc376ef8faf5c739ec05bd9b253a10e6e116386",
+      "projection_sha256": "01794bcc103c4b9fa9d5a7b47fc376ef8faf5c739ec05bd9b253a10e6e116386",
+      "size_bytes": 63635,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/positive/mmlu-subject-contrasts.csv",
+      "source_id": "mmlu-subject-contrasts.csv",
+      "original_sha256": "85c6b2cd1892fab0b044178f98c2d65988ff63deee4d9c63066b1ce1693f7c14",
+      "projection_sha256": "85c6b2cd1892fab0b044178f98c2d65988ff63deee4d9c63066b1ce1693f7c14",
+      "size_bytes": 158014,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/positive/completion-token-histogram.csv",
+      "source_id": "completion-token-histogram.csv",
+      "original_sha256": "3db8b1ca460a3e932e0c853e66401a38dd18918c9bda2bcd8fc58298de138f36",
+      "projection_sha256": "3db8b1ca460a3e932e0c853e66401a38dd18918c9bda2bcd8fc58298de138f36",
+      "size_bytes": 150035,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/negative/condition-summary.csv",
+      "source_id": "condition-summary.csv",
+      "original_sha256": "542ae1435b2f883885b40913db1537f548f3741770891037d9ddd50ed828271e",
+      "projection_sha256": "542ae1435b2f883885b40913db1537f548f3741770891037d9ddd50ed828271e",
+      "size_bytes": 3377,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/negative/negative-contrasts.csv",
+      "source_id": "negative-contrasts.csv",
+      "original_sha256": "6fa92d4f8e203a973f0787aa93dcceb0b2b70f113ce6a4998322cf10bddaefe7",
+      "projection_sha256": "6fa92d4f8e203a973f0787aa93dcceb0b2b70f113ce6a4998322cf10bddaefe7",
+      "size_bytes": 5233,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/negative/negative-plot-data.csv",
+      "source_id": "negative-plot-data.csv",
+      "original_sha256": "fce1b8516248d976f39f1f7b119ffde3a8a9457e9389a13b0a25da1044b17d49",
+      "projection_sha256": "fce1b8516248d976f39f1f7b119ffde3a8a9457e9389a13b0a25da1044b17d49",
+      "size_bytes": 3387,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/negative/mmlu-subject-summary.csv",
+      "source_id": "mmlu-subject-summary.csv",
+      "original_sha256": "01082028b19ec656c935694eb1a40e56802e7d46aa4ccd509a4d152966282b75",
+      "projection_sha256": "01082028b19ec656c935694eb1a40e56802e7d46aa4ccd509a4d152966282b75",
+      "size_bytes": 68878,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/negative/mmlu-subject-contrasts.csv",
+      "source_id": "mmlu-subject-contrasts.csv",
+      "original_sha256": "de6b5874071b18d24d764d95a2010c919db7b2d42deda46fe9824094fd7167fa",
+      "projection_sha256": "de6b5874071b18d24d764d95a2010c919db7b2d42deda46fe9824094fd7167fa",
+      "size_bytes": 173294,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/negative/positive-negative-points.csv",
+      "source_id": "positive-negative-points.csv",
+      "original_sha256": "fe755aeab6575876572950b7f4ee64f0655510a0b81e06b42b11ac66983f75ba",
+      "projection_sha256": "fe755aeab6575876572950b7f4ee64f0655510a0b81e06b42b11ac66983f75ba",
+      "size_bytes": 877,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/audit/audit-summary.csv",
+      "source_id": "audit-summary.csv",
+      "original_sha256": "0fc7ef86e1ad267a9f64d413e3dc29af91fea226a3c12136a330af412d5c8a45",
+      "projection_sha256": "0fc7ef86e1ad267a9f64d413e3dc29af91fea226a3c12136a330af412d5c8a45",
+      "size_bytes": 1073,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/audit/audit-summary.json",
+      "source_id": "audit-summary.json",
+      "original_sha256": "98fba9417e39a3f0c25428755326472b1f76b4a613093b5f1b479a7e7cf4c499",
+      "projection_sha256": "98fba9417e39a3f0c25428755326472b1f76b4a613093b5f1b479a7e7cf4c499",
+      "size_bytes": 13887,
+      "transformation": "Unchanged accepted aggregate input"
+    },
+    {
+      "path": "results/ab/honesty-final.json",
+      "source_id": "honesty-final-analysis.json",
+      "original_sha256": "ad4dd1a188268f987409340a6956e9c3b8fb79a261fae4cdc5eed050866f6b23",
+      "projection_sha256": "6a4c70e4f70caac3de23f553b29f9b897fd0de650eecaab208048392e0b466b7",
+      "size_bytes": 9424,
+      "transformation": "Unchanged final aggregate analysis, excluding private run_dir and manifest_path"
+    },
+    {
+      "path": "results/control/honesty-qualification.json",
+      "source_id": "diagnostics.json",
+      "original_sha256": "ff606b9149940e2b7bd8d922a3165ea5cc73c1b1fd5f615c30f5f67f7db65b2f",
+      "projection_sha256": "020b33858eb9118f2117ff2828b0d599d590f9619ee9fb8a9768a9e52ce89c56",
+      "size_bytes": 104660,
+      "transformation": "Unchanged block-14 aggregate diagnostics, excluding private run_dir and manifest_path"
+    },
+    {
+      "path": "results/ab/sycophancy-final.json",
+      "source_id": "sycophancy-final-analysis.json",
+      "original_sha256": "353d3c4ebd638052d30857155f8b2c6acc6e71050f1344c93ec66d8e756f1e3b",
+      "projection_sha256": "e7afe1595c76e709e77b02e2e73f8d579b6e3d85d4c9e7793dc80f0e4b1a1cf5",
+      "size_bytes": 9461,
+      "transformation": "Unchanged final aggregate analysis, excluding private run_dir and manifest_path"
+    },
+    {
+      "path": "results/control/sycophancy-qualification.json",
+      "source_id": "diagnostics.json",
+      "original_sha256": "173fdf8a192d7bd46aa86eba38da2245248bd63ce9530290053226885a80b066",
+      "projection_sha256": "4361a47cb3dbe75571cdc2ca115b37230873f4059caa5c349b11dddec195df5f",
+      "size_bytes": 104350,
+      "transformation": "Unchanged block-14 aggregate diagnostics, excluding private run_dir and manifest_path"
+    },
+    {
+      "path": "results/runs/development-baseline.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "90f0f6bba62271bc08fecb4ce5fef714a261540349d51ed791956d0d67f08fd9",
+      "projection_sha256": "bbf4ac1cd7cbd61e4ba4ccd175bf48d11af48b3572c2735d1b20adb29d4601dc",
+      "size_bytes": 27175,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/development-cyber_intrusion-real-a0p5.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "6251998a2964d433a3f970907e711cfb5ac1b2d379099be97aa9a53b49773e01",
+      "projection_sha256": "87cf7a59cf9db74157742618e72df0ba2eb1e8869086aa062f7653271667f266",
+      "size_bytes": 27390,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/development-cyber_intrusion-real-a1.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "e3189e4845d94e5ed4282cc868e1788914e96eb3badc99346a6d35004313708d",
+      "projection_sha256": "47aeaf4ae682b51fcecf787497b3a3d69a32128c9211425cb59471efb71ac38e",
+      "size_bytes": 27384,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/development-cyber_intrusion-real-a2.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "1cecfe26bc7212a5018e0473be74fa50b1f32c611a9bd5c3e0111921ae01d6e8",
+      "projection_sha256": "dcdd4417b0ea99034c05463cd392e0356299c770324bfde8d703fdbb8452c665",
+      "size_bytes": 27385,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/development-dangerous_substances-real-a0p5.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "1eab5a25b9b1c9fe0d7f5d8f7c03bea6504b4676bbdd2d9b7026d3a393ea4a30",
+      "projection_sha256": "3c8f2e6894b3068a438f30a9bad3c213fecb8ace6f36a17bc8fd0abff110c551",
+      "size_bytes": 27420,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/development-dangerous_substances-real-a1.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "d4b672df66af107f7d267d520131630958a0c9566e3edd99d42e2c42648a6abe",
+      "projection_sha256": "b4704add4fbe3a4dd2d833b3352d1c470b749e48fc4db127e6b9dddd9348fc61",
+      "size_bytes": 27414,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/development-dangerous_substances-real-a2.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "c2fb510d0840e00fc6396c806f7721333271ab99ecd00e353cb0ca73c6cb2536",
+      "projection_sha256": "bd1bab47b987b98e9b2cab23fff80d5b112d3ebd846ebdc6d4322421fe1f3f46",
+      "size_bytes": 27415,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/development-disinformation-real-a0p5.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "acb4c7ea83b4b81d9276eac98a2bf3b721814d39037531d1962c0fa7d36cb6f9",
+      "projection_sha256": "16a548e5314b5876ac8c516e8222e49fb393134047339fc14153b08963920dff",
+      "size_bytes": 27384,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/development-disinformation-real-a1.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "ba2379067dd11b4ac4a28bd0f74fc063c7676ef0a4ae34730f41e8ee49fa8e29",
+      "projection_sha256": "efd991af6bf8981f190bb25556e9221f957e11f064982266dd98a4d787d2fab7",
+      "size_bytes": 27378,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/development-disinformation-real-a2.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "579ae85b96f6fbe5fe9f63142f5e4e1a352026379e2f298382e6ea4ab2bf9197",
+      "projection_sha256": "0860bf6024b467bddafa6437206cc6d756e22b0e4580aaaafbb5da6f0dd7e695",
+      "size_bytes": 27379,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/development-pooled-real-a1.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "5e405cbe97fd2c641d53a4b25fccb1657313fc0168d2012ef2726d678c25443f",
+      "projection_sha256": "03116c14e7270fe85c324e49b40fbafd474373b0357c1bd31336e844bb3b401d",
+      "size_bytes": 27329,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-baseline.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "908c977678cfb4ab29c927f44072f0460083c7be138a680548bc0bd49aee0c11",
+      "projection_sha256": "add53068b60b5fd5b43aa8e9c629668dd424bc4a26108cf9e564e9ec4fa87e26",
+      "size_bytes": 27146,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-cyber_intrusion-random42.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "dd7be940b399b7514378ce7e02a2f3fbc98019e4a29fb5fe154cb37c44d5987d",
+      "projection_sha256": "37646aa645886b38ab719d5437b15bf8249b9d3543266c83f44f934a9a00db37",
+      "size_bytes": 27359,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-cyber_intrusion-random43.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "eedc117b8f29fde9591b423099f7db3b0094435339abad8b8fd6a0d7be5f2d1d",
+      "projection_sha256": "f6fd4db5e32ebc26536a3eb2d0d29932384c54667e05a70f55b848fed4874fbf",
+      "size_bytes": 27362,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-cyber_intrusion-real.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "9727ee11b401875c4d4056680da731a69d4d7f49055a2261e1f2d56a606f42e4",
+      "projection_sha256": "1e24f0eb151ad1c7203034a42d008081a76395eadb220b6a8f9c0346d4f0ea28",
+      "size_bytes": 27345,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-dangerous_substances-random42.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "966b4b5c24ff0f95d5848f34c4736d4087a6cc2f8a42aec3aa20da0b60ccc381",
+      "projection_sha256": "b44cf563aa5793f9941371dfe73adc249dbb535dd51794302a15b321f10fcae2",
+      "size_bytes": 27391,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-dangerous_substances-random43.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "0f48f71ebd99a980ae7dfdc42c24b062c23170a4921a377a6273388e007decc5",
+      "projection_sha256": "3f5a587ff791e5741b4d7d9b42ffd6c66042b614040c32f59db754a6b2effc53",
+      "size_bytes": 27391,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-dangerous_substances-real.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "cdc822629a266cc480d7ab90f53d79a13f0ba0ae7fa0daa11e3bd68fe040c0a4",
+      "projection_sha256": "ee8f4b6267a4b89a1f33425805c4372d3c08006889eb24c2db56bebfd8dd144b",
+      "size_bytes": 27375,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-disinformation-random42.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "e312f7c0c1517361b07ad62860e3df4076b7fca45ac7c549156e8f3804a304f5",
+      "projection_sha256": "481086eb45161b1dd7288604fdcc213cd5ac3af49da4ac7fc8648e13d40fc7bb",
+      "size_bytes": 27354,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-disinformation-random43.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "f34edf9647bfe3581ae3c24e21f381adcf78ba45f50c1da61995a787eca3ba7b",
+      "projection_sha256": "5a1dc732f4bdc53f088f51b2fa2ce854a57b2692dc20c94a2247ad7c509c5196",
+      "size_bytes": 27355,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-disinformation-real.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "f721a8376844f3112726e16dc64eded9df879bffeedb7b7bba75f991aaa75424",
+      "projection_sha256": "e299bc7d0f989d69e2f11f5ae4440783dfabfda11db5eb788e0db35205559eb5",
+      "size_bytes": 27339,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-pooled-random42.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "71122185667ed88552f1a822f2e58a1a2891a8eb7d828398c52f903edc930538",
+      "projection_sha256": "ec4f4fea3a2716871ad0f111fc8a5fcbdb3fe83bd9af26029bb4039c7e9214df",
+      "size_bytes": 27306,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-pooled-random43.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "5fa3704b940c0cd7352c8d81b057afb6c0fa1fe4ed75cc4648348d1cc687a8bc",
+      "projection_sha256": "ec91e2fbb7ad1480403f03061b6bc95a34a8b34071b828de5a25c7f4294bf3e8",
+      "size_bytes": 27307,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/final-pooled-real.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "f6a774aa2a22f67625581b55c0c307664476bc30c8d253737217e61ee491b1ea",
+      "projection_sha256": "39c7bc0495a687a9950f32df83654a59775e72277eaaeead0aed273714d646c7",
+      "size_bytes": 27292,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-cyber_intrusion-random42.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "c5266f3f8dc694e97b8d9ddca0575354f066af6eb101ad29113db83ffb2c8747",
+      "projection_sha256": "cbcd0998a30de34d48a001d554ac7a6c6ce73954d5a0da9e9eefd7d6ed13dda8",
+      "size_bytes": 1478,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-cyber_intrusion-random42-request.json",
+      "source_id": "request.json",
+      "original_sha256": "a2f3631f506ace894354f5eb3b3efab2cc370315aaa89030fec709712ef544c1",
+      "projection_sha256": "a7e064ee52110075d46100af4519afdd7a425b6e171994a2c224057299822734",
+      "size_bytes": 29682,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/runs/negative-mmlu-cyber_intrusion-random43.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "0c22e2ce44ef17606e707f55c7669b71c8b4379224d890c12a61ee4103364aad",
+      "projection_sha256": "71c26e4dd0b556cedd6e3a8c001ca6cd8fba2699f8bab8cae403d64960888abe",
+      "size_bytes": 1478,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-cyber_intrusion-random43-request.json",
+      "source_id": "request.json",
+      "original_sha256": "9ff29deefc3b046bd9e11c8c4e614932815646f5a3d2a2cd38ef44048f50156f",
+      "projection_sha256": "7f91d13b6f194b78ee1cc189d8d47578c24c90dce81f70658b138a36090654c0",
+      "size_bytes": 29684,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/runs/negative-mmlu-cyber_intrusion-real.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "3f9a50444edfa98a9ec36f28559e1dbc92c55297c9fbcb57470dd7dd42208205",
+      "projection_sha256": "a6b25a6dad137f9532188a211e2ca565993cc3cbcf894e14e2116fac90a29384",
+      "size_bytes": 1466,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-cyber_intrusion-real-request.json",
+      "source_id": "request.json",
+      "original_sha256": "c329b833f051483f91482c3c8d520c183a39bf38eca64f2ce30837db25fb5dc6",
+      "projection_sha256": "a6899f5ca5f24bd879c4aab4f2706631ee33fcf654ef8958bfb9b0c9b62486b7",
+      "size_bytes": 29680,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/runs/negative-mmlu-dangerous_substances-random42.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "dfed641205e4c7225099f53275aa11ce08da5e545b2816d1b37baddcdc68a7ec",
+      "projection_sha256": "46de1265b5bcd6f11f2d86d8898715329992691d128eff0f3c0d5fd453cf5cff",
+      "size_bytes": 1493,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-dangerous_substances-random42-request.json",
+      "source_id": "request.json",
+      "original_sha256": "320018f0fa00448aba48ed5d199f7a39d218ccf98aaa78402a1142e2ce510658",
+      "projection_sha256": "ede9a7bdf33313f87c92310ef43409e300f74cfb38dc950f46dbe56532616064",
+      "size_bytes": 29699,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/runs/negative-mmlu-dangerous_substances-random43.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "4edf4e4e44f2f0da4b468cf234ad2584db7a867602d48053ca823e6eea93d155",
+      "projection_sha256": "fe8cfd5978b9645df7a50ee691edbbc67e70e87a932e3a536f4f6cbb3239475d",
+      "size_bytes": 1493,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-dangerous_substances-random43-request.json",
+      "source_id": "request.json",
+      "original_sha256": "4143402126e620f33518ea956fce723ae1376e0759a838b8fbe3c49ad705b0aa",
+      "projection_sha256": "b449f97ab59da243072a7348078a119be151dabe82df6f43177ceea566c751b0",
+      "size_bytes": 29699,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/runs/negative-mmlu-dangerous_substances-real.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "35c9aa310a8958fad79708328822055a42f128bd883812e4af0fdb580e830ec7",
+      "projection_sha256": "9011362ff15e124d8598796ea5839ba84b01d9ed9c66f9b1b7400a6b8bcfcb09",
+      "size_bytes": 1481,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-dangerous_substances-real-request.json",
+      "source_id": "request.json",
+      "original_sha256": "4710abe5938ae546cac44940394a50d219ee67f24a96d6ce4d03955324bf00f8",
+      "projection_sha256": "23bcaba757dfd19c6cab715f6888f6a25bea358dc566df1b094f8f2afdd0d506",
+      "size_bytes": 29695,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/runs/negative-mmlu-disinformation-random42.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "c685b08c4b85fdbc0d850e62e8924a96cfdf8fd944e431329e0fd1f32dcb8620",
+      "projection_sha256": "611fcd8bef1585d000f73f7438be7b644cc984b3fc87777e1a14db98a3d61a75",
+      "size_bytes": 1474,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-disinformation-random42-request.json",
+      "source_id": "request.json",
+      "original_sha256": "f084a986ebe08ceed4708b70fd43ce3156926592fc63e330509a289affa58f1d",
+      "projection_sha256": "5dd0e681060f39d5e5cfb33e28423c3d2f498d3e7ec235d7efd0d4fba2659e1d",
+      "size_bytes": 29680,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/runs/negative-mmlu-disinformation-random43.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "9fbb7c87adaab671fc83d48af488acc4ba389e1777a277612c14e3e73d4c3ea9",
+      "projection_sha256": "6651a74db99b062f2d8a8b6847ba9e48fcef99ddf6e9b156222c84439f01ea5a",
+      "size_bytes": 1475,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-disinformation-random43-request.json",
+      "source_id": "request.json",
+      "original_sha256": "9a3e662739f70db48931b5b27a47c912cd1f7fdea707b5dfbb4b38ddc547f704",
+      "projection_sha256": "e067dc496cc745baa8ef3283fb86f89bb68fa8966cb8c35ed1400e6d3bfc9b95",
+      "size_bytes": 29682,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/runs/negative-mmlu-disinformation-real.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "e1eef1c8b6dc3fc84cb8d30011feea91f18437850ba35c2a1fc7c71e7ec97512",
+      "projection_sha256": "9f39eb38350b92218337dd111001bddb28844aacd41e23a62ad61cd5ad21a844",
+      "size_bytes": 1463,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-disinformation-real-request.json",
+      "source_id": "request.json",
+      "original_sha256": "189fbc33b42b8fd1a216db3208a46830672f9f3660d6f1864aab54b960aa7929",
+      "projection_sha256": "f6e4af19881ff9e01209dbf78e45a7257418e2a9cf1663f286d9f385c9120b7a",
+      "size_bytes": 29677,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/runs/negative-mmlu-pooled-random42.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "c9627d96c4018cc08d90eee560b0c13c87b20674bb3e574a873a4bea0462f5c0",
+      "projection_sha256": "15355714d18bd43b0b51062ac381b72a96f96e9ce63957eee33f7f763b9a527e",
+      "size_bytes": 1451,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-pooled-random42-request.json",
+      "source_id": "request.json",
+      "original_sha256": "9f125198a8aa24c9edaf282cb35b1bd15f27b840cac4907c91637834c2e0ae43",
+      "projection_sha256": "338ae4662d2fe47b9971a6e269d1f74edbd30768faf6c450a4ea5307821735d1",
+      "size_bytes": 29655,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/runs/negative-mmlu-pooled-random43.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "529c66e37ccf829495f377408d82b51c3d24653a58f57921bc43f99b996d2916",
+      "projection_sha256": "b732848fc64595004d7ef7b11f68ef9a85065223d4acc0becc2453da2e519ca7",
+      "size_bytes": 1451,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-pooled-random43-request.json",
+      "source_id": "request.json",
+      "original_sha256": "9fb1496ac273baacef7dfcca4d7cad9be7444e72b80af4c46f6f5cdc5f0de512",
+      "projection_sha256": "c55526a74d04364e49d46fd243c17ab260d6177e19c8f1a3b3ead44b498a6359",
+      "size_bytes": 29657,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/runs/negative-mmlu-pooled-real.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "5ad57b31453c84272ae2d5b408fcd02a2a028214e096dbaefbe9ecc37d3947b4",
+      "projection_sha256": "b04082423884b70b7b4dae312c3b8ee802b3ca4b4effccb64802185cc4c42ef9",
+      "size_bytes": 1439,
+      "transformation": "Selected run metadata only; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/runs/negative-mmlu-pooled-real-request.json",
+      "source_id": "request.json",
+      "original_sha256": "dd9fbd1bd7e92033e7f5806c96c567532137a5553b94f6863d2f05f02906b55c",
+      "projection_sha256": "3eb99aefc527acb767fed5b40a2317af15bf2706d6e713f270413f6f417d1dfc",
+      "size_bytes": 29653,
+      "transformation": "Selected condition request metadata; environment and import machine origins omitted; logical paths"
+    },
+    {
+      "path": "results/ab/honesty-run.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "8c27d40cff5bd71193c15b3463e8c8702f0b0f86949375fcb4515f7f986a1717",
+      "projection_sha256": "39545b4d725d4114a044ab06a64e6b3c5802a0e1c580938d1975a981e66b8dca",
+      "size_bytes": 9570,
+      "transformation": "Selected historical run metadata; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/control/honesty-run.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "e8f7a3c0cebaad0ce82210d51f8659a8d6c7c7f0e61feedf10ca1c8653e438e8",
+      "projection_sha256": "3081b70a6c76c51da8141d2dedeccaff6c73668e8e6b1d029043df38ff48e2db",
+      "size_bytes": 24636,
+      "transformation": "Selected historical run metadata; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/ab/sycophancy-run.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "519dac1ffa9daa3cff6b476a94238021c613f32b0b32061efa2bb51b70ae818d",
+      "projection_sha256": "733bea06c83523357949eaafdba2b31d1d148a84c0ee7457c52f2e06a0931c8d",
+      "size_bytes": 9597,
+      "transformation": "Selected historical run metadata; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/control/sycophancy-run.json",
+      "source_id": "run-manifest.json",
+      "original_sha256": "9476c1222075f7204a106e0a6df3e9f9833480731668467cd5589b2ff686c31e",
+      "projection_sha256": "016b603940ffba2770439934201d273a19cd939a9f44a531212f1eefd2f399eb",
+      "size_bytes": 24652,
+      "transformation": "Selected historical run metadata; logical path projection; original hashes retained"
+    },
+    {
+      "path": "results/provenance/positive-freeze.json",
+      "source_id": "freeze.json",
+      "original_sha256": "ce25b826040b5a1c58982a7f36a1e4b3a4a4b03d716ebe7a7cba4f9f1dbe2b46",
+      "projection_sha256": "ebc5769cc039bf1002afd87274e0fe6f15cdc07ee2bced71fa26a2e05bc6cf0d",
+      "size_bytes": 25508,
+      "transformation": "Machine paths projected; environment maps omitted; historical hash identities unchanged"
+    },
+    {
+      "path": "results/provenance/negative-freeze.json",
+      "source_id": "freeze.json",
+      "original_sha256": "98e1968806b30c09dbed63ccc685bdaf40411ec901d065f7d30cb3872dbd7c54",
+      "projection_sha256": "d584a9b4d1c1c6aa3bd769750c9fec5da4564b164863cca43fb3ee140f2b68db",
+      "size_bytes": 12792,
+      "transformation": "Machine paths projected; environment maps omitted; historical hash identities unchanged"
+    },
+    {
+      "path": "results/provenance/dose-freeze.json",
+      "source_id": "dose-freeze.json",
+      "original_sha256": "0377480f40736f73cf6d1734990c3165d538b4a66712ca47768ce82ea76badfb",
+      "projection_sha256": "0377480f40736f73cf6d1734990c3165d538b4a66712ca47768ce82ea76badfb",
+      "size_bytes": 1558,
+      "transformation": "Unchanged; no path replacement needed"
+    },
+    {
+      "path": "results/provenance/positive-ledger.json",
+      "source_id": "ledger.json",
+      "original_sha256": "c93f723064cdd0ae699d6d06fa5087ef6f5335c9d069f210a750532964cc5715",
+      "projection_sha256": "03958b78daccb8acd617b1929e6a718ae99ceb7fa8b6b662a64f0024529ae2b0",
+      "size_bytes": 19335,
+      "transformation": "Machine paths projected; environment maps omitted; historical hash identities unchanged"
+    },
+    {
+      "path": "results/provenance/negative-ledger.json",
+      "source_id": "ledger.json",
+      "original_sha256": "af55d0aea2167e4b04917f26bec92ce53c09c9fd54fc6935f10abe76e9451806",
+      "projection_sha256": "d3174786b82a2857f5fd57a5bc7dd4973231847cce0e1550cb1a0a3a6e250274",
+      "size_bytes": 7999,
+      "transformation": "Machine paths projected; environment maps omitted; historical hash identities unchanged"
+    },
+    {
+      "path": "results/provenance/campaign-provenance.json",
+      "source_id": "campaign-provenance.json",
+      "original_sha256": "5805e6879a90199ac8c1d65e508ddec9a29e85e24f774943fff34f4e03779d70",
+      "projection_sha256": "369972ad31dd93efc13d49f19182056d06a2510967ddff8c7251c3c508e6c0de",
+      "size_bytes": 4709,
+      "transformation": "Machine paths projected; environment maps omitted; historical hash identities unchanged"
+    },
+    {
+      "path": "results/provenance/generation-provenance.json",
+      "source_id": "generation-provenance.json",
+      "original_sha256": "5f644d2e3112e2990077d1fa4fc02ab18fc4627300ae7587ba13ff682c283e79",
+      "projection_sha256": "b44fa6a07083e1fce98d51c4783324f52e4c2b05b80bcba265792d8e770b6cb1",
+      "size_bytes": 6105,
+      "transformation": "Machine paths projected; environment maps omitted; historical hash identities unchanged"
+    },
+    {
+      "path": "results/provenance/geometry-provenance.json",
+      "source_id": "geometry-provenance.json",
+      "original_sha256": "2174e5a6600d2e3e83357c9b1f2e3b2dc15a563355e197ece37a79e7b761c172",
+      "projection_sha256": "2ba31441f59ec447b045cd1879c062c4f7a584ce62f3fbd69b4821612dc2f9e5",
+      "size_bytes": 3816,
+      "transformation": "Machine paths projected; environment maps omitted; historical hash identities unchanged"
+    },
+    {
+      "path": "results/inputs/refusal-domains.pt",
+      "source_id": "refusal-domains.pt",
+      "original_sha256": "28150fee085e3e0b0f2aa0422d8a414a654251be593a61e26b359010855893da",
+      "projection_sha256": "28150fee085e3e0b0f2aa0422d8a414a654251be593a61e26b359010855893da",
+      "size_bytes": 871385,
+      "transformation": "Original frozen scientific tensor: row activations, means and four directions; no text or model weights"
+    },
+    {
+      "path": "results/provenance/refusal-scale-reference.json",
+      "source_id": "refusal-scale-reference.json",
+      "original_sha256": "81547047c5082bb19dba0ad5ca1c2f41d0d9dfcde607ba7ad4c5dfe903eff18f",
+      "projection_sha256": "83f98a5e87bae6c630bc599b9489565cd8535512266c383cdd9a76f9ed824313",
+      "size_bytes": 809,
+      "transformation": "Public numerical reference projection; private source_metadata_path replaced; original reference hash retained separately"
+    },
+    {
+      "path": "docs/historical-source/positive_campaign.py.txt",
+      "source_id": "positive_campaign.py",
+      "original_sha256": "606ecae1e83913bd74176cd756d923fe018ae3064607756413d04ee3ed57b913",
+      "projection_sha256": "606ecae1e83913bd74176cd756d923fe018ae3064607756413d04ee3ed57b913",
+      "size_bytes": 42600,
+      "transformation": "Unchanged; no path replacement needed; inspectable historical source archive, not an executable relocated campaign"
+    },
+    {
+      "path": "docs/historical-source/negative_campaign.py.txt",
+      "source_id": "negative_campaign.py",
+      "original_sha256": "381d9f79cf7a3cd7f14a982240ccbd3ec6d1ba0855ff00ac8aba7a1216d9b86d",
+      "projection_sha256": "7d2d11d7eb33949ff7ec4f96a70579e2ac53f2ec407faf3345b8d2816e1790af",
+      "size_bytes": 24734,
+      "transformation": "Inspectable historical source archive; private paths replaced; not an executable relocated campaign"
+    },
+    {
+      "path": "docs/historical-source/export_final.py.txt",
+      "source_id": "export_final.py",
+      "original_sha256": "8e3db5f61aee508627a8eba0b0b78b87b3ede27f310da87cbcb32f12792950c3",
+      "projection_sha256": "b0eb8a595573408134a72ae6516e97166ff3a5b150ed4793fd2f9d41a611c9f6",
+      "size_bytes": 39916,
+      "transformation": "Inspectable historical source archive; private paths replaced; not an executable relocated campaign"
+    },
+    {
+      "path": "docs/historical-source/export_negative.py.txt",
+      "source_id": "export_negative.py",
+      "original_sha256": "571143ed09579046c2c9557be4e5a741bf3823b1fed17cdb162b9931d810584e",
+      "projection_sha256": "2224368343acd06cc5cb7c9c625bbba842fe4faba8af99ae244f9f239a1723bf",
+      "size_bytes": 28347,
+      "transformation": "Inspectable historical source archive; private paths replaced; not an executable relocated campaign"
+    },
+    {
+      "path": "docs/historical-source/aggregate_audit.py.txt",
+      "source_id": "aggregate_audit.py",
+      "original_sha256": "7c98f47b289a21067ba38a772491d2ee847e1e24fc2ca086e6c267bfb91fffb9",
+      "projection_sha256": "7c98f47b289a21067ba38a772491d2ee847e1e24fc2ca086e6c267bfb91fffb9",
+      "size_bytes": 23142,
+      "transformation": "Unchanged; no path replacement needed; inspectable historical source archive, not an executable relocated campaign"
+    },
+    {
+      "path": "results/run-index.json",
+      "source_id": "36 historical run manifests",
+      "original_sha256": null,
+      "projection_sha256": "76e20d8bb8ca0cad5112b3448680a3b40e1428111cc9fc9e82fbb51c40f6f1b3",
+      "size_bytes": 26090,
+      "transformation": "Index derived from admitted run projections"
+    },
+    {
+      "path": "scripts/make_figures.py",
+      "source_id": "make_figures.py (accepted figure source)",
+      "original_sha256": "18b7abb75b63941ddcb24d30772f59d2da3030821a88be1354c1f6a9a456cb9b",
+      "projection_sha256": "6e69154fa1d6f8a7511236fa0083f6a0bb39a4c44e84a900e098183ef90a438a",
+      "size_bytes": 28199,
+      "transformation": "Repository-relative aggregate inputs and output argument; report-text checks removed; plotting and artist checks retained; inline figure environment pinned; use bundled DejaVu Sans for portable font metrics; wrap against both SVG and PNG text metrics; wrap chart titles for bundled font"
+    },
+    {
+      "path": "results/ab/honesty-panel-metadata.json",
+      "source_id": "honesty.json",
+      "original_sha256": "a8c12d19fba5b5f22f519f47772c9a0e6b737c4e2e2896744a2923c18837b7e7",
+      "projection_sha256": "40fd125c90ea3946cc8da37e01fe1376282d3c8578948eb96ad067598cc9bd8f",
+      "size_bytes": 33260,
+      "transformation": "Ordered source IDs/splits/groups only; all prompt and answer text excluded"
+    },
+    {
+      "path": "results/ab/sycophancy-panel-metadata.json",
+      "source_id": "sycophancy.json",
+      "original_sha256": "740fd18199358406bf104a631172684bcc0d03e691b17b7a51bbdf00f73d43fc",
+      "projection_sha256": "6141503ce63845ea5be55a169bf2562fa728a7082023fac625649357f819670b",
+      "size_bytes": 10904,
+      "transformation": "Ordered source IDs/splits/groups only; all prompt and answer text excluded"
+    },
+    {
+      "path": "results/ab/selection.json",
+      "source_id": "dev-selection.json",
+      "original_sha256": "dc20cf9e9271d4b6c7c4c603722bd2ec160bc2428e2c4aaa25f82ed1d6dd9623",
+      "projection_sha256": "dc20cf9e9271d4b6c7c4c603722bd2ec160bc2428e2c4aaa25f82ed1d6dd9623",
+      "size_bytes": 2062,
+      "transformation": "A/B frozen sign-specific dose choices and source hash identities; no panel text"
+    },
+    {
+      "path": "results/figures/figure-3-1-pipeline.png",
+      "source_id": "figure-3-1-pipeline.png",
+      "original_sha256": "97740fc330a4ce414f44f21614a3f10bf87655f896eca9f3a995adfaf60c6b6f",
+      "projection_sha256": "d53774b2a5fe5923d7755d311b10336868472ea07564ce04b56dc04f7b42d344",
+      "size_bytes": 627417,
+      "transformation": "Re-rendered accepted figure using adapted plotting script, bundled fonts and checked artist positions; original/current rendered hashes distinct"
+    },
+    {
+      "path": "results/figures/figure-3-1-pipeline.svg",
+      "source_id": "figure-3-1-pipeline.svg",
+      "original_sha256": "2f0f7d2caf1e3f23f11b42c4d5e24dd93e04eeecb35e3ca2b7d787bd9df839e7",
+      "projection_sha256": "c26c44c986d685ad129b3ed39df4356a5b81e90d8ebcd71f2852a54c899ca827",
+      "size_bytes": 234641,
+      "transformation": "Re-rendered accepted figure using adapted plotting script, bundled fonts and checked artist positions; original/current rendered hashes distinct"
+    },
+    {
+      "path": "results/figures/figure-4-1-development.png",
+      "source_id": "figure-4-1-development.png",
+      "original_sha256": "8e28cc224bda0f2a8b5a26b3b8ab3dee797a31973799d05ead8ac81210df1847",
+      "projection_sha256": "55d7851e8ffd9cd8f1340fb0039f5366e6128404b3a9668430d7046d83a0e5a1",
+      "size_bytes": 199437,
+      "transformation": "Re-rendered accepted figure using adapted plotting script, bundled fonts and checked artist positions; original/current rendered hashes distinct"
+    },
+    {
+      "path": "results/figures/figure-4-1-development.svg",
+      "source_id": "figure-4-1-development.svg",
+      "original_sha256": "6524ca4e018115d5846bd5638daaf0ff93b344a68e8015d43a8b64d4ecdf7bc4",
+      "projection_sha256": "80ec900e34a4031c0a8d8da039e2217e24becdbe98b7361a01278f6d4685cb37",
+      "size_bytes": 80213,
+      "transformation": "Re-rendered accepted figure using adapted plotting script, bundled fonts and checked artist positions; original/current rendered hashes distinct"
+    },
+    {
+      "path": "results/figures/figure-4-2-final-contrasts.png",
+      "source_id": "figure-4-2-final-contrasts.png",
+      "original_sha256": "57b4987866a190499955cd1e70e90d6acbf5b206cdb50f1813b8104639f6fe52",
+      "projection_sha256": "d52e26506837b040b500594683d1852606337e96fc51a872cd3318659c695826",
+      "size_bytes": 105709,
+      "transformation": "Re-rendered accepted figure using adapted plotting script, bundled fonts and checked artist positions; original/current rendered hashes distinct"
+    },
+    {
+      "path": "results/figures/figure-4-2-final-contrasts.svg",
+      "source_id": "figure-4-2-final-contrasts.svg",
+      "original_sha256": "3c513f05607ffe28345e94cafa095d46381cb483d580f4db60f84dba637f4cf7",
+      "projection_sha256": "0d7502b5b2bfd1f018a410728a0063ca7ece8eb15f884c0c340d58b47b3d42da",
+      "size_bytes": 72900,
+      "transformation": "Re-rendered accepted figure using adapted plotting script, bundled fonts and checked artist positions; original/current rendered hashes distinct"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+layer,sample,n,known_agreement,unclear,known_disagreement,proxy_positive,proxy_negative,agreement_range_lower,agreement_range_upper,refusal_range_lower,refusal_range_upper,refusal_full,refusal_mixed,refusal_none,refusal_unclear,coherence_yes,coherence_no,coherence_unclear,relevance_yes,relevance_no,relevance_unclear,task_completion_complete,task_completion_partial,task_completion_no_attempt,task_completion_unclear
+original_human,real,16,16,0,0,5,11,1.0,1.0,0.3125,0.3125,3,2,11,0,10,0,6,10,0,6,7,4,0,5
+original_human,baseline_random,16,14,0,2,2,14,0.875,0.875,0.0,0.0,0,0,16,0,16,0,0,16,0,0,12,1,0,3
+original_human,targeted,24,21,0,3,7,17,0.875,0.875,0.16666666666666666,0.16666666666666666,1,3,20,0,22,0,2,22,0,2,17,3,0,4
+owner_adjudicated,real,16,15,1,0,5,11,0.9375,1.0,0.3125,0.375,4,1,10,1,13,1,2,12,2,2,4,5,5,2
+owner_adjudicated,baseline_random,16,15,0,1,2,14,0.9375,0.9375,0.0625,0.0625,0,1,15,0,16,0,0,16,0,0,9,7,0,0
+owner_adjudicated,targeted,24,20,2,2,7,17,0.8333333333333334,0.9166666666666666,0.125,0.20833333333333334,1,2,19,2,23,0,1,22,0,2,14,4,2,4

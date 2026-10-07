@@ -1,0 +1,39 @@
+{
+  "configuration_sha256": "7cdf1ca66463d20a686d9b6f3424004f22a6fa1a31fb1ace6d3bdae57e885104",
+  "attempt": 1,
+  "completed": {
+    "path": "unpublished/negative/negative-mmlu-disinformation-random43/attempt-001/output/completed.json",
+    "sha256": "32d393e0a272ddce9af0bfd5d669ff5c35731da79e2db30227479bb8ce605f5d"
+  },
+  "returncode": 0,
+  "started_at": "2026-10-06T20:06:54.436027+00:00",
+  "ended_at": "2026-10-06T20:15:41.788129+00:00",
+  "elapsed_seconds": 527.3372749080299,
+  "status": "completed",
+  "settled": true,
+  "signals_received": [],
+  "output_sha256": {
+    "completed.json": "32d393e0a272ddce9af0bfd5d669ff5c35731da79e2db30227479bb8ce605f5d",
+    "execution.json": "fa033ec09d39d722e4919b26f15bcea3ab1be6070f2cbc1b8c918dd7568ef073",
+    "result.partial.json": "73ca1a6c410ab5e7c31a80edd4bf7370df9de0ac71b9930606821e45ab9c2c6c"
+  },
+  "output_hashes_final": true,
+  "argv": [
+    "external/tools/uv",
+    "run",
+    "--locked",
+    "--no-sync",
+    "--offline",
+    "--python",
+    "historical/positive-code/.venv/bin/python",
+    "python",
+    "-u",
+    "historical/negative-code/src/activation_steering_study/steering/negative_mmlu.py",
+    "--request",
+    "unpublished/negative/negative-mmlu-disinformation-random43/attempt-001/request.json",
+    "--request-sha256",
+    "9a3e662739f70db48931b5b27a47c912cd1f7fdea707b5dfbb4b38ddc547f704",
+    "--attempt-dir",
+    "unpublished/negative/negative-mmlu-disinformation-random43/attempt-001/output"
+  ]
+}
